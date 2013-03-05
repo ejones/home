@@ -1,0 +1,8 @@
+defscrollback 1500
+shell -$SHELL
+setenv LC_CTYPE en_US.UTF-8
+term xterm-256color
+altscreen on
+maptimeout 5
+autodetach on
+defutf8 on
