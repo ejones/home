@@ -27,7 +27,27 @@ au FileType \(html\|json\) setlocal nowrap
 
 " Scratch
 au BufNewFile \*scratch\* setlocal bt=nofile bh=hide noswf bl
-command! Scratch e \*scratch\*
+command! -bar Scratch
+\  let g:lastdir=expand("%:p:h")
+\| wincmd o
+\| wincmd v
+\| exec "normal zz"
+\| wincmd w
+\| e \*scratch\*
+\| exec "lcd ".g:lastdir
+
+command! ScratchWithPrompt
+\  if expand("%") != "*scratch*"
+\|   Scratch
+\| endif
+\| exec "normal Go".g:lastdir." ".expand("$USER")."$ "
+
+command! -bang -nargs=* -complete=file ScratchEnterPrompt
+\  let g:lastcommand="<args>"
+\| exec "normal o".g:lastcommand."<esc>kJ"
+\| exec "r! ".g:lastcommand
+\| normal o
+
 
 " Neocomplcache
 let g:neocomplcache_enable_at_startup = 1
@@ -61,10 +81,12 @@ nnoremap o :edit %:p:h<cr>
 " vi (even if you're making a new file, you give it a name first)
 nnoremap n :edit %:p:h/
 
+" [1]un command -- opens/switches to a scratch buffer and enters ex for an OS
+" command
+nnoremap 1 :ScratchWithPrompt<cr>:redraw<cr>:ScratchEnterPrompt!
 
 " select [a]ll
 nnoremap a gg^vG$
-
 
 " [s]ave file, [S]ave all
 nnoremap s :write<cr>
@@ -73,6 +95,9 @@ nnoremap S :wall<cr>
 " like Cmd-W and Cmd-Q: close current 'tab', quit application
 nnoremap w :bd<cr>
 nnoremap q :qall<cr>
+
+" switch to named window, based on screen's similar mapping
+nnoremap ' :ls<cr>:b
 
 " selecting pasted text.
 " from http://vim.wikia.com/wiki/Selecting_your_pasted_text
