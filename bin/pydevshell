@@ -6,7 +6,7 @@ setup script.
 
 The debugger has custom commands to remember run statements and re-run them.
 """
-import pdb, bdb, sys, os, subprocess, json
+import pdb, bdb, sys, os, subprocess, json, re
 
 def main():
     dstag = os.getenv('DEV_SHELL_TAG')
@@ -133,21 +133,27 @@ class Pdb(pdb.Pdb):
 
     def help_madd(self):
         print >>self.stdout, """\
-ma(dd) [cmd]
-Add the last command to the remembered commands for this invocation.
-If [cmd] is provided, run it and then add it.\
+ma(dd) [line1[,[line2]]] [cmd]
+Add the last command to the remembered commands for this invocation.  If [cmd]
+is provided, run it and then add it. If a range is provided, splice or insert
+at that range in memory.\
 """
 
     help_ma = help_madd
 
     def do_madd(self, arg):
+        rarg, arg = re.match(r'\s*((?:-?\d+(?:,(?:-\d)?\d*)?|,-?\d+)\s+)?(.*)', arg).groups()
         if arg:
             self.onecmd(arg)
             cmd = arg + '\n'
         else:
             cmd = self.last_lastcmd + '\n'
-        self.memory.append(cmd)
-        self.getstore('a').write(cmd)
+        if rarg is None:
+            self.memory.append(cmd)
+            self.getstore('a').write(cmd)
+        else:
+            self.memory[self.parse_range(rarg)] = [cmd]
+            self.getstore('w').writelines(self.memory)
 
     do_ma = do_madd
 
@@ -166,7 +172,7 @@ them.\
 
     def do_mrecall(self, arg):
         self._is_recalling = rng = arg if isinstance(arg, slice) else self.parse_range(arg)
-        while self._is_recalling and (rng.start or 0) < len(self.memory):
+        while self._is_recalling and (rng.start or 0) < (rng.stop or len(self.memory)):
             cmd = self.memory[rng.start or 0]
             print >>self.stdout, self.recall_prompt.rstrip(), cmd,
             self._is_recalling = rng = slice((rng.start or 0) + 1, rng.stop)
@@ -188,7 +194,10 @@ Clear memory entries, optionally on a line or range.\
         rng = self.parse_range(arg)
         del self.memory[rng]
         if os.path.isfile(self.storepath):
-            os.unlink(self.storepath)
+            if not self.memory:
+                os.unlink(self.storepath)
+            else:
+                self.getstore('w').writelines(self.memory)
 
     do_mc = do_mclear
 
