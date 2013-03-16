@@ -6,27 +6,53 @@ endif
 
 " standard editor setup
 set ai ml mls=5 et sts=4 ts=4 sw=4 ls=2 bs=2 
-  \ stl=%t\ %y\ %r\ %m\ %=%c,%l/%L nu hid lazyredraw bg=dark
+  \ stl=%t\ %y\ %r\ %m\ %=%c,%l/%L nu hid lazyredraw
+  \ autoread
 filetype on
 filetype plugin on
 syntax on
 
+" Git
+so $HOME/.vim/plugin/fugitive.vim
+
+" Colors - Solarized
+so $HOME/.vim/autoload/togglebg.vim
+colors solarized
+
+" Need high contrast for light mode Solarized
+function! AdjustSolarizedContrast()
+    let act = g:solarized_contrast
+    let expect = &bg == 'dark' ? 'normal' : 'high'
+    if act != expect
+        let g:solarized_contrast = expect
+        colors solarized
+    endif
+endfunction
+
+call AdjustSolarizedContrast()
+au! ColorScheme * call AdjustSolarizedContrast()
+
+" good ol' MacVim
+if has("mac")
+    set macmeta
+endif
+
 " smaller indent for markup and cs
-au FileType \(xml\|html\|soy\|coffee\) setlocal sw=2 sts=2
+au! FileType \(xml\|html\|soy\|coffee\) setlocal sw=2 sts=2
 
 " cindent for C-like languages
-au FileType \(cs\|cpp\|c\|java\) setlocal cindent
+au! FileType \(cs\|cpp\|c\|java\) setlocal cindent
 
 " cindent can't quite handle JS
-au FileType javascript setlocal smartindent
+au! FileType javascript setlocal smartindent
 
 " html has some long lines man
 " json does not support line breaks in strings so by definition there may be
 " really long lines
-au FileType \(html\|json\) setlocal nowrap
+au! FileType \(html\|json\) setlocal nowrap
 
 " Scratch
-au BufNewFile \*scratch\* setlocal bt=nofile bh=hide noswf bl
+au! BufNewFile \*scratch\* setlocal bt=nofile bh=hide noswf bl
 command! -bar Scratch
 \  let g:lastdir=expand("%:p:h")
 \| wincmd o
@@ -54,6 +80,39 @@ let g:neocomplcache_enable_at_startup = 1
 imap <C-k> <Plug>(neocomplcache_snippets_expand)
 smap <C-k> <Plug>(neocomplcache_snippets_expand)
 
+" NERDTREE
+let NERDTreeShowHidden=1
+
+" Conque Shell
+let g:ConqueTerm_EscKey = '<C-q>'
+let g:ConqueTerm_ReadUnfocused = 1
+
+" between MacVim and Conque, Meta seems to be mostly clobbered. This encodes
+" the most needed meta readline bindings
+"function! ConqueSendMeta(key)
+"    call conque_term#get_instance().write("".a:key)
+"endfunction
+
+"function! ConqueStartup(term)
+"    for key in split(" b f <BS> d ")
+"        if key[0] == "<"
+"            let mapkey = key[1:-2]
+"        else
+"            let mapkey = key
+"        endif
+"        exec "inoremap <buffer> <M-".mapkey."> <C-o>:call ConqueSendMeta('".key."')<cr>"
+"    endfor
+"endfunction
+
+"call conque_term#register_function('after_startup', 'ConqueStartup')
+
+au! InsertCharPre *
+\  if exists('b:insert_end_char') && b:insert_end_char == v:char
+\|   unlet b:insert_end_char
+\|   let v:char = ''
+\|   stopinsert
+\| endif
+
 command! -nargs=* SubWord exec "%s/\\<" . expand("<cword>") . "\\>/" . <q-args>
 
 " UNIX copy / paste
@@ -63,48 +122,49 @@ command! -range PasteReplace exec <line1>.",".<line2>."Paste" | normal gvD
 
 " Meta mappings of the commonest ex commands, using their rough GUI/Web
 " Browser equivalents
-vnoremap c :Copy<cr>
-nnoremap c :Copy<cr>
-vnoremap x :Copy<cr>gvD
-nnoremap x :Copy<cr>dd
-vnoremap v :PasteReplace<cr>
-nnoremap v :Paste<cr>
+vnoremap <M-c> :Copy<cr>
+nnoremap <M-c> :Copy<cr>
+vnoremap <M-x> :Copy<cr>gvD
+nnoremap <M-x> :Copy<cr>dd
+vnoremap <M-v> :PasteReplace<cr>
+nnoremap <M-v> :Paste<cr>
 
 " cycle windows
-nnoremap ` :bn<cr>
-nnoremap ~ :bp<cr>
+nnoremap <M-`> :bn<cr>
+nnoremap <M-~> :bp<cr>
 
 " [o]pen file
-nnoremap o :edit %:p:h<cr>
+map <M-o> :NERDTree %:p:h<cr>
 
 " [n]ew window - use :edit because you never start in a truly blank window in
 " vi (even if you're making a new file, you give it a name first)
-nnoremap n :edit %:p:h/
+nnoremap <M-n> :edit %:p:h/
 
 " [1]un command -- opens/switches to a scratch buffer and enters ex for an OS
 " command
-nnoremap 1 :ScratchWithPrompt<cr>:redraw<cr>:ScratchEnterPrompt!
+"nnoremap <M-1> :ScratchWithPrompt<cr>:redraw<cr>:ScratchEnterPrompt!
+nnoremap <M-r> :ConqueTerm bash -login<cr>
 
 " select [a]ll
-nnoremap a gg^vG$
+nnoremap <M-a> gg^vG$
 
 " [s]ave file, [S]ave all
-nnoremap s :write<cr>
-nnoremap S :wall<cr>
+nnoremap <M-s> :write<cr>
+nnoremap <M-S> :wall<cr>
 
 " like Cmd-W and Cmd-Q: close current 'tab', quit application
-nnoremap w :bd<cr>
-nnoremap q :qall<cr>
+nnoremap <M-w> :bd<cr>
+nnoremap <M-q> :qall<cr>
 
 " switch to named window, based on screen's similar mapping
-nnoremap ' :ls<cr>:b
+nnoremap <M-'> :ls<cr>:b
 
 " selecting pasted text.
 " from http://vim.wikia.com/wiki/Selecting_your_pasted_text
 nnoremap <expr> gp '`[' . strpart(getregtype(), 0, 1) . '`]'
 
 " like Eclipse's ctrl-arrow to move whole lines up and down
-nnoremap <up> ddkP
-vnoremap <up> DkP
-nnoremap <down> ddp
-vnoremap <down> Dp
+nnoremap <M-j> ddkP
+vnoremap <M-j> DkP
+nnoremap <M-k> ddp
+vnoremap <M-k> Dp
