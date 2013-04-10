@@ -6,31 +6,39 @@ endif
 
 " standard editor setup
 set ai ml mls=5 et sts=4 ts=4 sw=4 ls=2 bs=2 
-  \ stl=%t\ %y\ %r\ %m\ %=%c,%l/%L nu hid lazyredraw
-  \ autoread
+  \ stl=%t\ %y\ %r\ %m\ %{fugitive#statusline()}%=%c,%l/%L
+  \ nu hid lazyredraw autoread
+  \ previewheight=20
 filetype on
 filetype plugin on
 syntax on
 
+" switch dir on BufEnter
+au BufEnter * silent! lcd %:p:h
+
 " Git
 so $HOME/.vim/plugin/fugitive.vim
 
+set bg=dark
+
 " Colors - Solarized
-so $HOME/.vim/autoload/togglebg.vim
-colors solarized
+if has('gui_running')
+    so $HOME/.vim/autoload/togglebg.vim
+    colors solarized
 
-" Need high contrast for light mode Solarized
-function! AdjustSolarizedContrast()
-    let act = g:solarized_contrast
-    let expect = &bg == 'dark' ? 'normal' : 'high'
-    if act != expect
-        let g:solarized_contrast = expect
-        colors solarized
-    endif
-endfunction
+    " Need high contrast for light mode Solarized
+    function! AdjustSolarizedContrast()
+        let act = g:solarized_contrast
+        let expect = &bg == 'dark' ? 'low' : 'high'
+        if act != expect
+            let g:solarized_contrast = expect
+            colors solarized
+        endif
+    endfunction
 
-call AdjustSolarizedContrast()
-au! ColorScheme * call AdjustSolarizedContrast()
+    call AdjustSolarizedContrast()
+    au! ColorScheme * call AdjustSolarizedContrast()
+endif
 
 " good ol' MacVim
 if has("mac")
@@ -50,6 +58,10 @@ au! FileType javascript setlocal smartindent
 " json does not support line breaks in strings so by definition there may be
 " really long lines
 au! FileType \(html\|json\) setlocal nowrap
+
+" Complete curlies
+inoremap {<CR> {<CR>}<C-o>O
+inoremap {<Space> {
 
 " Scratch
 au! BufNewFile \*scratch\* setlocal bt=nofile bh=hide noswf bl
@@ -82,6 +94,7 @@ smap <C-k> <Plug>(neocomplcache_snippets_expand)
 
 " NERDTREE
 let NERDTreeShowHidden=1
+let NERDTreeQuitOnOpen=1
 
 " Conque Shell
 let g:ConqueTerm_EscKey = '<C-q>'
@@ -106,14 +119,10 @@ let g:ConqueTerm_ReadUnfocused = 1
 
 "call conque_term#register_function('after_startup', 'ConqueStartup')
 
-au! InsertCharPre *
-\  if exists('b:insert_end_char') && b:insert_end_char == v:char
-\|   unlet b:insert_end_char
-\|   let v:char = ''
-\|   stopinsert
-\| endif
-
 command! -nargs=* SubWord exec "%s/\\<" . expand("<cword>") . "\\>/" . <q-args>
+
+" Shift + Tab
+inoremap <S-Tab> <C-o><<
 
 " UNIX copy / paste
 command! -range Copy silent! <line1>,<line2>w ! pbcopy
