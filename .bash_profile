@@ -4,6 +4,34 @@ bind '"\e[A":history-search-backward'
 bind '"\e[B":history-search-forward'
 eval "$(rbenv init -)"
 
+alias ll='ls -l'
+
+alias gs='git status'
+alias ga='git add'
+alias gd='git diff'
+alias gc='git checkout'
+alias gco='git commit -v'
+alias gf='git fetch'
+alias gm='git merge'
+alias gp='git push'
+alias gl='git log --left-right'
+alias glg='git log-graph --left-right'
+alias gst='git stash'
+alias gsm='git submodule'
+alias gsmup='git submodule update --init --recursive'
+alias gr='git reset'
+alias gsh='git show'
+
+# gcb - "Git Checkout Branch"
+# (also Great Canadian Bagel)
+# WIP!
+gcb() {
+    git checkout "$1" &&
+    git submodule update --init --recursive
+}
+
+source "$HOME/google-cloud-sdk/completion.bash.inc"
+
 # {{{
 # Node Completion - Auto-generated, do not touch.
 shopt -s progcomp
