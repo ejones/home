@@ -1,0 +1,25 @@
+
+snippet     main-script
+abbr        def main ... if __name__ == '__main__': main()
+alias       mainscript
+options     head
+    import sys
+
+    def main(args=sys.argv[1:]):
+        ${0:TARGET}
+
+    if __name__ == '__main__':
+        main()
+
+snippet     if-main
+abbr        if __name__ == '__main__':
+alias       ifmain
+options     head
+    if __name__ == '__main__':
+        ${0:TARGET}
+
+snippet     pdb-set-trace
+abbr        import pdb; pdb.set_trace()
+alias       pdb
+options     head
+    import pdb; pdb.set_trace()

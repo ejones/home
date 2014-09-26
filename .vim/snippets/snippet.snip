@@ -1,0 +1,10 @@
+snippet     snippet
+abbr        snippet abbr alias options <snippet code>
+alias       snip
+options     head
+    snippet     ${1:#:trigger}
+    abbr        ${2:#:abbr}
+    alias       ${3:#:alias}
+    options     head
+        ${0:#:TARGET}
+

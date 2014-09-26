@@ -1,0 +1,179 @@
+# Calling a function with a closure
+snippet     closure
+alias       clo
+options     head
+    ${1:#:target}(${2:#:args}function(${3:#:farg}) {
+        ${0:TARGET}
+    });
+
+snippet     foro
+options     head
+    for (var ${2:i}=${3:0}, ${4:len}=${1:#:Things}.length; $2<$4; $2++) {
+        var ${5:item} = $1[$2];
+        ${0:TARGET}
+    }
+
+snippet     switch
+alias       swi
+options     head
+    switch (${1:#:stuff}) {
+    ${0:TARGET}
+    }
+
+snippet     case
+options     head
+    case ${1:#:thing}:
+        ${0:TARGET}
+        break;
+
+snippet     default
+alias       defa
+options     head
+    default:
+        ${0:TARGET}
+        break;
+
+snippet     returnbuilder
+alias       ret
+options     head
+    var ret = ${1:#:initial};
+    ${0:TARGET}
+    return ret;
+
+snippet     while
+alias       whi
+options     head
+    while (${1:#:cond}) {
+        ${0:TARGET}
+    }
+
+snippet     angular-controller
+abbr        window.<ctrl> = [ deps..., func() { ... } ];
+alias       ngc
+options     head
+    window.${1:#:fname} = ['$scope', ${2:#:deps}function $1($scope${3:#:args}) {
+        ${0:TARGET}
+    }];
+
+snippet     angular-module
+abbr        angular.module(<name>, <deps...>)
+alias       ngm
+options     head
+    window.angular.module("${1:#:name}", [${2:#:deps}])${3:.}
+    ${0:TARGET}
+
+snippet     angular-factory-function
+abbr        .factory(<name>, [ <deps...>, <func> ])
+alias       ngff
+options     head
+    factory("${1:#:name}", [${2:#:deps}function(${3:#:depargs}) {
+        return function $1(${5:#:args}) {
+            ${0:TARGET}
+        };
+    }])${4:.}
+
+snippet     angular-factory-object
+abbr        .factory(<name>, [ <deps...>, <func> ])
+alias       ngfo
+options     head
+    factory("${1:#:name}", [${2:#:deps}function(${3:#:args}) {
+        return {
+            ${5:#:props}
+        };
+    }])${4:.}
+
+snippet     angular-directive
+abbr        .directive(<name>, [ <deps...>, ... ])
+alias       ngd
+options     head
+    directive("${1:#:name}", [${2:#:deps}function(${3:#:args}) {
+        return {
+            restrict: 'A',
+            link: function(scope, elm, attrs) {
+                ${0:TARGET}
+            }
+        };
+    }])${4:.}
+
+snippet     angular-config
+abbr        .config([<deps...>, <func>])
+alias       ngconf
+options     head
+    config(['$routeProvider', ${1:#:deps}function(rt${2:#:args}) {
+        rt.
+            ${0:TARGET}
+    }])${3:.}
+
+snippet     angular-route
+abbr        .when('<route>', { ... })
+alias       ngwh
+options     head
+    when('${1:#:route}', {
+        templateUrl: '${2:#:url}',
+        controller:  '${3:#:ctrl}'
+    })${4:.}
+
+snippet     angular-default-route
+abbr        .otherwise({ ... })
+alias       ngother
+options     head
+    otherwise({
+        templateUrl: '${1:#:url}',
+        controller:  '${2:#:ctrl}'
+    });
+
+snippet :f
+options head
+  ${1:#:method_name}: function $1(${2:#:args}) {
+    ${0:TARGET}
+  }${3:,}
+
+snippet     object-value
+abbr        <key>: <value>[, ]
+alias       :v
+options     word
+    ${1:#:key}: ${2:#:value}${3:,}
+
+snippet     angular-scope-function
+abbr        $scope.<name> = function() { }
+alias       ngsf
+options     head
+    $scope.${1:#:name} = function $1(${2:#:args}) {
+        ${0:TARGET}
+    };
+
+snippet     angular-scope-value
+abbr        $scope.<name> = <value>;
+alias       ngsv
+options     head
+    $scope.${1:#:name} = ${2:#:value};
+
+snippet     return-object
+abbr        return { ... };
+alias       reto
+options     head
+    return {
+        ${1:#:props}
+    };
+
+snippet     return-func
+abbr        return function X() { ... };
+alias       retf
+options     head
+    return function ${1:#:name}(${2:#args}) {
+        ${0:TARGET}
+    };
+
+snippet     this-function
+abbr        this.<func> = function <func>() { ... };
+alias       thisf
+options     head
+    this.${1:#:name} = function $1(${2:#:args}) {
+        ${0:TARGET}
+    };
+
+snippet     console-log
+abbr        console.log(...);
+alias       clog
+options     word
+    window.console.${3:log}("${2:$1}", ${1:#:stuff});${4}
