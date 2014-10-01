@@ -2,7 +2,8 @@ if [[ -f ~/.bashrc ]]; then . ~/.bashrc; fi
 bind '"\t":menu-complete'
 bind '"\e[A":history-search-backward'
 bind '"\e[B":history-search-forward'
-eval "$(rbenv init -)"
+
+if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
 
 alias ll='ls -l'
 
@@ -30,7 +31,10 @@ gcb() {
     git submodule update --init --recursive
 }
 
-source "$HOME/google-cloud-sdk/completion.bash.inc"
+GOOGLE_CLOUD_COMPLETION="$HOME/google-cloud-sdk/completion.bash.inc"
+if [[ -f "$GOOGLE_CLOUD_COMPLETION" ]]; then
+    source "$GOOGLE_CLOUD_COMPLETION"
+fi
 
 # {{{
 # Node Completion - Auto-generated, do not touch.
