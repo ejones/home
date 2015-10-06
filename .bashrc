@@ -1,4 +1,4 @@
-export PATH="$HOME/bin:$HOME/.cljr/bin:$HOME/.rbenv/bin:/usr/local/share/npm/bin:/usr/local/sbin:/usr/local/bin:$PATH"
+export PATH="$HOME/bin:$HOME/.cljr/bin:$HOME/.rbenv/bin:/usr/local/share/npm/bin:/usr/local/sbin:/usr/local/bin:$HOME/.rvm/bin:$PATH"
 
 # Per the rbenv docs, uses Homebrew dirs instead of ~/.rbenv for rbenv
 export RBENV_ROOT="/usr/local/var/rbenv"

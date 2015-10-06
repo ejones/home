@@ -44,3 +44,7 @@ for f in $(command ls ~/.node-completion); do
   test -f "$f" && . "$f"
 done
 # }}}
+
+if [[ -s "$HOME/.rvm/scripts/rvm" ]]; then
+    source "$HOME/.rvm/scripts/rvm"
+fi
