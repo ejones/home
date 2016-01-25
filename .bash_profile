@@ -22,6 +22,7 @@ alias gsm='git submodule'
 alias gsmup='git submodule update --init --recursive'
 alias gr='git reset'
 alias gsh='git show'
+alias gff='git merge --ff-only'
 
 # gcb - "Git Checkout Branch"
 # (also Great Canadian Bagel)
@@ -34,6 +35,10 @@ gcb() {
 GOOGLE_CLOUD_COMPLETION="$HOME/google-cloud-sdk/completion.bash.inc"
 if [[ -f "$GOOGLE_CLOUD_COMPLETION" ]]; then
     source "$GOOGLE_CLOUD_COMPLETION"
+fi
+
+if [[ -s "$(brew --prefix)/etc/profile.d/autojump.sh" ]]; then
+    source "$(brew --prefix)/etc/profile.d/autojump.sh"
 fi
 
 # {{{

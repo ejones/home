@@ -4,6 +4,7 @@ if filereadable($HOME."/.vim/autoload/pathogen.vim")
         call add(g:pathogen_disabled, 'vim-css-color')
     endif
     execute pathogen#infect()
+    Helptags
 endif
 
 " make changes to *this* file live
@@ -13,7 +14,7 @@ if !exists("g:did_liven_vimrc")
 endif
 
 " standard editor setup
-set ai ml mls=5 et sts=4 ts=4 sw=4 ls=2 bs=2 hls
+set ai ml mls=5 et sts=4 ts=4 sw=4 ls=2 bs=2 hls bg=dark
   \ stl=%t\ %y\ %r\ %m\ %{fugitive#statusline()}%=%c,%l/%L
   \ nu hid lazyredraw autoread
   \ previewheight=20
@@ -22,7 +23,7 @@ filetype indent plugin on
 syntax on
 
 if has('gui_running')
-    set guifont=Inconsolata:h13
+    set guifont=Fira\ Code:h13
 endif
 
 fu! MaybeSource(f)
@@ -48,58 +49,45 @@ noremap ; :
 
 call MaybeSource($HOME.'/.vim/plugin/fugitive.vim')
 
-if !has('gui_running')
-    set bg=dark
-endif
-
 " Colors - Solarized
-if has('gui_running')
-    call MaybeSource($HOME.'/.vim/autoload/togglebg.vim')
+if has("gui_running")
     colors solarized
-
-    " Need high contrast for light mode Solarized
-    function! AdjustSolarizedContrast()
-        let act = g:solarized_contrast
-        let expect = &bg ==# 'dark' ? 'low' : 'high'
-        if act != expect
-            let g:solarized_contrast = expect
-            colors solarized
-        endif
-    endfunction
-
-    call AdjustSolarizedContrast()
-    au! ColorScheme * call AdjustSolarizedContrast()
 endif
 
 " good ol' MacVim
-if has("mac")
+if has("mac") && has("gui_running")
     set macmeta
 endif
 
 " It seems like by default, *.tpl is associated with smarty templates
 au! BufRead,BufNewFile *.tpl setlocal ft=html
 
-" smaller indent for markup and cs, js and css
-au! FileType \(xml\|html\|soy\|coffee\|javascript\|css\|less\) setlocal sw=2 sts=2
+" smaller indent for markup and cs, js and css...
+au! FileType \(xml\|html\|soy\|coffee\|javascript\|css\|less\|yaml\|ruby\) setlocal sw=2 sts=2
 
 " cindent for C-like languages
 au! FileType \(cs\|cpp\|c\|java\) setlocal cindent
 
 " cindent can't quite handle JS
-au! FileType javascript setlocal smartindent cms=//%s
+" au! FileType javascript setlocal smartindent cms=//%s
 
 " html has some long lines man
 " json does not support line breaks in strings so by definition there may be
 " really long lines
-au! FileType \(html\|json\) setlocal nowrap foldmethod=indent | normal zR
+au! FileType \(html\|json\|css\|less\) setlocal nowrap foldmethod=indent | normal zR
+
+" Text files - wrap better
+au! FileType \(text\|markdown\) setlocal wrap linebreak nolist
 
 au! FileType python setlocal makeprg=python\ % errorformat=
 
 " Complete curlies
-" inoremap {<CR> {<CR>}<C-o>O
-" inoremap {<Space> {
-" inoremap {); {<CR>});<C-o>O
-" inoremap {)); {<CR>}));<C-o>O
+" inoremap { {}<C-O>i
+" inoremap {<CR> {<CR>}<C-O>O<Tab>
+" inoremap ( ()<C-O>i
+" inoremap (<CR> (<CR>)<C-O>O<Tab>
+" inoremap [ []<C-O>i
+" inoremap [<CR> [<CR>]<C-O>O<Tab>
 
 command! -nargs=1 -complete=file ZipOpen
 \  edit <args>
@@ -260,7 +248,7 @@ nnoremap <D-r> :w \| make<CR>
 inoremap <D-r> <Esc>:w \| make<CR>
 
 " Neocomplcache
-let g:neocomplcache_enable_at_startup = 1
+let g:neocomplete#enable_at_startup = 1
 
 " Neosnippet
 " Plugin key-mappings.
@@ -271,8 +259,12 @@ xmap <C-k>     <Plug>(neosnippet_expand_target)
 let g:neosnippet#snippets_directory='~/.vim/snippets'
 
 " NERDTREE
-let NERDTreeShowHidden=1
-let NERDTreeQuitOnOpen=1
+let g:NERDTreeShowHidden=1
+let g:NERDTreeQuitOnOpen=1
+let g:NERDTreeIgnore=['\~$', '\.sw[op]$']
+
+" Ag
+let g:ag_working_path_mode="r"
 
 " Conque Shell
 let g:ConqueTerm_EscKey = '<C-q>'
@@ -331,6 +323,9 @@ nnoremap <M-]> :bp<cr>
 
 " [o]pen file
 noremap <M-o> :NERDTree %:p:h<cr>
+
+" open NerdTree like Atom's file explorer
+noremap <M-\> :exe "NERDTree ".GetProjectDir()<cr>
 
 " open file by query... like opening a new tab in other browsers
 noremap <M-t> :GitOpen 

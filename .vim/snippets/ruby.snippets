@@ -1,0 +1,15 @@
+snippet     rspec-describe
+abbr        describe '...' do ... end
+alias       desc
+options     head
+    describe '${1:#:topic}' do
+        ${0:TARGET}
+    end
+
+snippet     rspec-it
+abbr        it '...' do ... end
+alias       it
+options     head
+    it '${1:#:topic}' do
+        ${0:TARGET}
+    end
