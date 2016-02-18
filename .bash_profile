@@ -24,6 +24,25 @@ alias gr='git reset'
 alias gsh='git show'
 alias gff='git merge --ff-only'
 
+# Completion
+if [[ -s "$(brew --prefix)/etc/bash_completion" ]]; then
+    . "$(brew --prefix)/etc/bash_completion"
+
+    __git_complete ga _git_add
+    __git_complete gd _git_diff
+    __git_complete gc _git_checkout
+    __git_complete gco _git_commit
+    __git_complete gf _git_fetch
+    __git_complete gm _git_merge
+    __git_complete gp _git_push
+    __git_complete gl _git_log
+    __git_complete gst _git_stash
+    __git_complete gsm _git_submodule
+    __git_complete gr _git_reset
+    __git_complete gsh _git_show
+    __git_complete gff _git_merge
+fi
+
 # gcb - "Git Checkout Branch"
 # (also Great Canadian Bagel)
 # WIP!
