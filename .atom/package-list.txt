@@ -1,0 +1,14 @@
+atom-dark-fusion-syntax@1.1.0
+clipboard-plus@0.5.1
+emmet@2.4.1
+ex-mode@0.8.0
+git-blame@0.4.8
+git-plus@5.13.0
+language-babel@2.15.4
+monokai@0.18.0
+nucleus-dark-ui@0.7.4
+pigments@0.23.1
+react@0.14.1
+vim-mode@0.64.0
+vim-mode-clipboard-plus@0.2.0
+

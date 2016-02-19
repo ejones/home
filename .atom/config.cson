@@ -1,0 +1,18 @@
+"*":
+  core:
+    excludeVcsIgnoredPaths: false
+    packagesWithKeymapsDisabled: [
+      "emmet"
+    ]
+    themes: [
+      "nucleus-dark-ui"
+      "atom-dark-fusion-syntax"
+    ]
+  editor:
+    invisibles: {}
+  emmet: {}
+  "git-plus": {}
+  "vim-mode":
+    useClipboardAsDefaultRegister: true
+  welcome:
+    showOnStartup: false
