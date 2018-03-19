@@ -1,3 +1,6 @@
+export ORDEV=origin/develop
+export ORMAS=origin/master
+
 if [[ -f ~/.bashrc ]]; then . ~/.bashrc; fi
 bind '"\t":menu-complete'
 bind '"\e[A":history-search-backward'
@@ -15,6 +18,7 @@ alias gco='git commit -v'
 alias gf='git fetch'
 alias gm='git merge'
 alias gp='git push'
+alias gpoh='git push origin HEAD'
 alias gl='git log --left-right'
 alias glg='git log-graph --left-right'
 alias gst='git stash'
@@ -23,6 +27,14 @@ alias gsmup='git submodule update --init --recursive'
 alias gr='git reset'
 alias gsh='git show'
 alias gff='git merge --ff-only'
+alias gre='git rebase'
+alias fixup='git commit --amend --no-edit'
+
+alias cdiff140s='cdiff -w140 -s'
+alias cdiff0s='cdiff -w0 -s'
+
+alias simple-http='python -mSimpleHTTPServer'
+alias grasp='grasp -x js,jsx --parser "(flow-parser, { esproposal_class_instance_fields: true, esproposal_class_static_fields: true, esproposal_decorators: true, esproposal_export_star_as: true, types: true})"'
 
 # Completion
 if [[ -s "$(brew --prefix)/etc/bash_completion" ]]; then
@@ -43,13 +55,25 @@ if [[ -s "$(brew --prefix)/etc/bash_completion" ]]; then
     __git_complete gff _git_merge
 fi
 
-# gcb - "Git Checkout Branch"
-# (also Great Canadian Bagel)
-# WIP!
-gcb() {
-    git checkout "$1" &&
-    git submodule update --init --recursive
+stashed() {
+    git stash -u && { "$@"; git stash pop; }
 }
+
+set-upstream() {
+    git branch --set-upstream-to="$1"
+}
+
+alias track-ordev='set-upstream origin/develop'
+
+gds() {
+    git diff -w "$@" | cdiff -w"$(($(tput cols) > 280 ? 140 : 0))" -s
+}
+
+gss() {
+    git show -w "$@" | cdiff -w"$(($(tput cols) > 280 ? 140 : 0))" -s
+}
+
+alias gdcas='gds --cached'
 
 GOOGLE_CLOUD_COMPLETION="$HOME/google-cloud-sdk/completion.bash.inc"
 if [[ -f "$GOOGLE_CLOUD_COMPLETION" ]]; then
@@ -71,4 +95,8 @@ done
 
 if [[ -s "$HOME/.rvm/scripts/rvm" ]]; then
     source "$HOME/.rvm/scripts/rvm"
+fi
+
+if [[ -s "$HOME/.work/bashrc" ]]; then
+    source "$HOME/.work/bashrc"
 fi

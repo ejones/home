@@ -14,7 +14,7 @@ if !exists("g:did_liven_vimrc")
 endif
 
 " standard editor setup
-set ai ml mls=5 et sts=4 ts=4 sw=4 ls=2 bs=2 hls bg=dark
+set ai ml mls=5 et sts=4 ts=4 sw=4 ls=2 bs=2 hls bg=light
   \ stl=%t\ %y\ %r\ %m\ %{fugitive#statusline()}%=%c,%l/%L
   \ nu hid lazyredraw autoread
   \ previewheight=20
@@ -23,7 +23,7 @@ filetype indent plugin on
 syntax on
 
 if has('gui_running')
-    set guifont=Fira\ Code:h13
+    " set guifont=Fira\ Code:h13
 endif
 
 fu! MaybeSource(f)
@@ -68,13 +68,12 @@ au! FileType \(xml\|html\|soy\|coffee\|javascript\|css\|less\|yaml\|ruby\) setlo
 " cindent for C-like languages
 au! FileType \(cs\|cpp\|c\|java\) setlocal cindent
 
-" cindent can't quite handle JS
-" au! FileType javascript setlocal smartindent cms=//%s
-
 " html has some long lines man
 " json does not support line breaks in strings so by definition there may be
 " really long lines
 au! FileType \(html\|json\|css\|less\) setlocal nowrap foldmethod=indent | normal zR
+
+au! FileType javascript.jsx setlocal foldmethod=indent | normal zR
 
 " Text files - wrap better
 au! FileType \(text\|markdown\) setlocal wrap linebreak nolist

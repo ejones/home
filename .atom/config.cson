@@ -1,18 +1,49 @@
 "*":
+  "atom-beautify":
+    general:
+      _analyticsUserId: "bfb7c2a3-4a77-4706-b885-89a93f86c5f8"
+    ruby: {}
+  "autocomplete-paths":
+    maxFileCount: 4000
+  "autocomplete-plus": {}
   core:
-    excludeVcsIgnoredPaths: false
     packagesWithKeymapsDisabled: [
       "emmet"
     ]
+    telemetryConsent: "limited"
     themes: [
-      "nucleus-dark-ui"
-      "atom-dark-fusion-syntax"
+      "one-light-ui"
+      "solarized-light-syntax"
     ]
   editor:
+    fontSize: 15
     invisibles: {}
+    preferredLineLength: 100
+    scrollPastEnd: true
   emmet: {}
-  "git-plus": {}
+  "exception-reporting":
+    userId: "22bdd3e4-6d86-eddf-4df3-31db638c1bdf"
+  "find-and-replace":
+    searchContextLineCountAfter: 4
+  "git-blame":
+    columnWidth: 235
+  "git-plus":
+    general:
+      _analyticsUserId: "e2f72de6-22af-4604-b1bb-7bb85d17f027"
+  "linter-ui-default":
+    showPanel: true
+  "prettier-atom":
+    prettierOptions:
+      bracketSpacing: false
+      printWidth: 100
+      trailingComma: "all"
+    useEslint: true
+  "rubocop-auto-correct":
+    autoRun: true
+  "tree-view":
+    hideVcsIgnoredFiles: true
   "vim-mode":
     useClipboardAsDefaultRegister: true
+  "vim-mode-plus": {}
   welcome:
     showOnStartup: false

@@ -4,7 +4,7 @@
 [credential]
 	helper = osxkeychain
 [core]
-	editor = "/usr/bin/env mvim -f $1; osascript -e 'tell app \"Terminal\" to activate' >/dev/null 2>&1"
+	editor = "vim"
 [alias]
     sub = "!sh -c 'REPL=$1; shift; vim $(git grep --name-only -Ee\"$0\" $@) -c\"bufdo %s/\\v$(echo \"$0\" | sed '\\''s/\\[\\[:<:\\]\\]/</g; s/\\[\\[:>:\\]\\]/>/g'\\'')/$REPL/gc\"'"
     log-graph = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr)%C(bold blue)<%an>%Creset' --abbrev-commit"
@@ -13,3 +13,6 @@
     color = 1
 [push]
 	default = matching
+	default = nothing
+[merge]
+	tool = kdiff3

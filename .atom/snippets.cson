@@ -19,3 +19,73 @@
 # If you are unfamiliar with CSON, you can read more about it in the
 # Atom Flight Manual:
 # https://atom.io/docs/latest/using-atom-basic-customization#cson
+'.source.js.jsx':
+  'React Component':
+    'prefix': 'react-component'
+    'body': """
+      import React from 'react';
+      import PropTypes from 'prop-types';
+
+      class ${1:MyComponent} extends React.Component {
+        static propTypes = {
+          className: PropTypes.string,
+        };
+
+        static defaultProps = {
+          className: '',
+        };
+
+        render() {
+          const {className} = this.props;
+
+          return (
+            <div className={`${1} ${className}`}>
+            </div>
+          );
+        }
+      }
+
+      export default ${1};
+    """
+  'Functional React Component':
+    'prefix': 'react-func-component'
+    'body': """
+      import React from 'react';
+      import PropTypes from 'prop-types';
+
+      const ${1:MyComponent} = ({className}) =>
+        <div className={`${1} ${className}`}>
+        </div>;
+
+      ${1}.propTypes = {
+        className: PropTypes.string,
+      };
+
+      ${1}.defaultProps = {
+        className: '',
+      };
+
+      export default ${1};
+    """
+  'import':
+    'prefix': 'import'
+    'body': "import ${1:thing}${2: from '${3:place}'};"
+'.source.ruby':
+  'RSpec Describe':
+    'prefix': 'describe-rspec'
+    'body': """
+      describe '${1:thing}' do
+        $2
+      end
+    """
+  'RSpec Example':
+    'prefix': 'it-rspec'
+    'body': """
+      it '${1:thing}' do
+        $2
+      end
+    """
+'.source.less':
+  '@import (reference)':
+    'prefix': 'import-reference'
+    'body': '@import (reference) "${1:file}"'
