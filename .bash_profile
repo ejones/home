@@ -28,7 +28,11 @@ alias gr='git reset'
 alias gsh='git show'
 alias gff='git merge --ff-only'
 alias gre='git rebase'
+alias gb='git branch'
 alias fixup='git commit --amend --no-edit'
+
+alias yt='yarn test'
+alias ytu='yarn test -u'
 
 alias cdiff140s='cdiff -w140 -s'
 alias cdiff0s='cdiff -w0 -s'
@@ -53,6 +57,7 @@ if [[ -s "$(brew --prefix)/etc/bash_completion" ]]; then
     __git_complete gr _git_reset
     __git_complete gsh _git_show
     __git_complete gff _git_merge
+    __git_complete gb _git_branch
 fi
 
 stashed() {

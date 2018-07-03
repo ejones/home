@@ -214,3 +214,50 @@ abbr        console.log(...);
 alias       clog
 options     word
     window.console.${3:log}("${2:$1}", ${1:#:stuff});${4}
+
+snippet     react-unit-test
+options     head
+    import React from 'react';
+    import {shallow} from 'enzyme';
+
+    const renderShallow = props =>
+      shallow(
+        <${1:#:MyComponent}
+          {...props}
+        />
+      );
+
+    it('renders', () => {
+      expect(renderShallow()).toMatchSnapshot();
+    });
+
+snippet     react-unit-test-intl
+options     head
+    import React from 'react';
+
+    const renderShallow = props =>
+      shallowWithIntl(
+        <Raw${1:#:MyComponent}
+          {...props}
+        />
+      );
+
+    it('renders', () => {
+      expect(renderShallow()).toMatchSnapshot();
+    });
+  
+snippet     component-did-mount
+abbr        componentDidMount() { ... }
+alias       cdm
+options     head
+    componentDidMount() {
+      ${0:TARGET}
+    }
+  
+snippet     component-did-update
+abbr        componentDidUpdate() { ... }
+alias       cdu
+options     head
+    componentDidUpdate(prevProps, prevState) {
+      ${0:TARGET}
+    }

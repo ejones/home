@@ -2,6 +2,7 @@ if filereadable($HOME."/.vim/autoload/pathogen.vim")
     let g:pathogen_disabled = []
     if !has('gui_running')
         call add(g:pathogen_disabled, 'vim-css-color')
+        call add(g:pathogen_disabled, 'deoplete.nvim')
     endif
     execute pathogen#infect()
     Helptags
@@ -16,21 +17,22 @@ endif
 " standard editor setup
 set ai ml mls=5 et sts=4 ts=4 sw=4 ls=2 bs=2 hls bg=light
   \ stl=%t\ %y\ %r\ %m\ %{fugitive#statusline()}%=%c,%l/%L
-  \ nu hid lazyredraw autoread
+  \ nu hid lazyredraw autoread splitright
   \ previewheight=20
+  \ colorcolumn=100
 filetype on
 filetype indent plugin on
 syntax on
-
-if has('gui_running')
-    " set guifont=Fira\ Code:h13
-endif
 
 fu! MaybeSource(f)
     if filereadable(a:f)
         exec 'so '.a:f
     endif
 endfu
+
+" Searching
+set grepprg=rg\ --color=never
+set wildignore+=*/.git/*,*/tmp/*,*.so,*.swp
 
 " switch dir on BufEnter
 au BufEnter * silent! lcd %:p:h
@@ -59,6 +61,8 @@ if has("mac") && has("gui_running")
     set macmeta
 endif
 
+au! BufRead,BufNewFile *.snap setlocal ft=javascript.jsx
+
 " It seems like by default, *.tpl is associated with smarty templates
 au! BufRead,BufNewFile *.tpl setlocal ft=html
 
@@ -73,7 +77,7 @@ au! FileType \(cs\|cpp\|c\|java\) setlocal cindent
 " really long lines
 au! FileType \(html\|json\|css\|less\) setlocal nowrap foldmethod=indent | normal zR
 
-au! FileType javascript.jsx setlocal foldmethod=indent | normal zR
+au! FileType \(javascript\|javascript.jsx\) setlocal foldmethod=indent | normal zR
 
 " Text files - wrap better
 au! FileType \(text\|markdown\) setlocal wrap linebreak nolist
@@ -93,26 +97,6 @@ command! -nargs=1 -complete=file ZipOpen
 \| if !exists("b:zipfile")
 \|   call zip#Browse("<args>")
 \| endif
-
-fu! TryFindGitTopLevel()
-    let l:res = system('git rev-parse --show-toplevel')
-    if !v:shell_error
-        return substitute(l:res, '\n', '', '')
-    else
-        return ''
-    endif
-endfu
-
-fu! GetProjectDir()
-    if !exists('g:project_dir')
-        echo 'No current project directory set.'
-        call inputsave()
-        let l:dir = input('Enter project dir: ', TryFindGitTopLevel(), 'dir')
-        call inputrestore()
-        let g:project_dir = substitute(fnamemodify(l:dir, ':p'), '/$', '', '')
-    endif
-    return g:project_dir
-endfu
 
 function! PyOpen(modname)
     let l:path = system('python -c "import inspect as I,"'.shellescape(a:modname).'" as M;'.
@@ -142,57 +126,6 @@ function! PyOpen(modname)
 endfunction
 
 command! -nargs=1 PyOpen call PyOpen("<args>")
-
-fu! GitOpen(query)
-    " Remove any trailing slash *and* .git dir
-    let l:proj_dir = GetProjectDir()
-
-    " Take space-separated input terms. File path must match all terms, and we
-    " accomplish this with multiple grep commands piped into one another. Also
-    " we escape '.'.
-    let l:grep_cmds = split(substitute(a:query, '\.', '\\.', ''))
-    call map(l:grep_cmds, '"grep ".shellescape(escape(v:val, "-"))')
-
-    let l:findres = system(
-\       "cd ".shellescape(l:proj_dir).
-\       " && ( git ls-files --others --exclude-standard --cached && ".
-\             "git submodule foreach --quiet ".
-\                   shellescape(
-\                       '(git ls-files --others --exclude-standard --cached '.
-\                       ' | awk -v "name=$name" ''{ print name "/" $0 }'')').
-\           " )".
-\       " | ".join(l:grep_cmds, " | ").
-\       " | head -n10")
-
-    let l:lines = split(l:findres, "\n")
-
-    if len(l:lines) == 0
-        echo "No files match '".substitute(a:query, "'", "''", "")."'!"
-        return
-
-    elseif len(l:lines) == 1
-        let l:idx = 0
-
-    else
-        let l:options = ["Select file:"]
-        for i in range(len(l:lines))
-            call add(l:options, (i + 1).". ".l:lines[i])
-        endfor
-        let l:idx = inputlist(l:options) - 1
-
-        if l:idx < 0 || l:idx >= len(l:lines)
-            " -1 is caused by cancelling. Other numbers can be caused by
-            "  clicking off the menu, so just treat all invalid indices as
-            "  cancels.
-            echo "\nSelection cancelled."
-            return
-        endif
-    endif
-
-    exe "edit ".fnameescape(l:proj_dir."/".l:lines[l:idx])
-endfu
-
-command! -nargs=* GitOpen call GitOpen("<args>")
 
 " Scratch
 au! BufNewFile \*scratch\* setlocal bt=nofile bh=hide noswf bl
@@ -246,9 +179,6 @@ onoremap if :call SelectCursorFile()<CR>
 nnoremap <D-r> :w \| make<CR>
 inoremap <D-r> <Esc>:w \| make<CR>
 
-" Neocomplcache
-let g:neocomplete#enable_at_startup = 1
-
 " Neosnippet
 " Plugin key-mappings.
 imap <C-k>     <Plug>(neosnippet_expand_or_jump)
@@ -257,13 +187,21 @@ xmap <C-k>     <Plug>(neosnippet_expand_target)
 
 let g:neosnippet#snippets_directory='~/.vim/snippets'
 
+" Deoplete
+let g:deoplete#enable_at_startup = 1
+
 " NERDTREE
 let g:NERDTreeShowHidden=1
 let g:NERDTreeQuitOnOpen=1
 let g:NERDTreeIgnore=['\~$', '\.sw[op]$']
 
-" Ag
-let g:ag_working_path_mode="r"
+" CtrlP
+let g:ctrlp_user_command = 'rg %s --files --color=never --glob ""'
+let g:ctrlp_use_caching = 0
+
+" RipGrep
+let g:rg_highlight = 1
+let g:rg_derive_root = 1
 
 " Conque Shell
 let g:ConqueTerm_EscKey = '<C-q>'
@@ -324,10 +262,7 @@ nnoremap <M-]> :bp<cr>
 noremap <M-o> :NERDTree %:p:h<cr>
 
 " open NerdTree like Atom's file explorer
-noremap <M-\> :exe "NERDTree ".GetProjectDir()<cr>
-
-" open file by query... like opening a new tab in other browsers
-noremap <M-t> :GitOpen 
+noremap <M-\> :NERDTreeFind<cr>
 
 " [n]ew window - use :edit because you never start in a truly blank window in
 " vi (even if you're making a new file, you give it a name first)
@@ -350,7 +285,7 @@ nnoremap <M-w> :bd<cr>
 nnoremap <M-q> :qall<cr>
 
 " switch to named window, based on screen's similar mapping
-nnoremap <M-'> :ls<cr>:b
+nnoremap <M-'> :CtrlPBuffer<cr>
 
 " selecting pasted text.
 " from http://vim.wikia.com/wiki/Selecting_your_pasted_text

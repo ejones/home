@@ -1,4 +1,5 @@
-export PATH="$HOME/bin:$HOME/arcanist/bin:$HOME/.cljr/bin:$HOME/.rbenv/bin:$(yarn global bin):/usr/local/share/npm/bin:/usr/local/sbin:/usr/local/bin:$HOME/.rvm/bin:$PATH"
+export PATH="$HOME/bin:$HOME/arcanist/arcanist/bin:$HOME/.cljr/bin:$HOME/.rbenv/bin:/usr/local/opt/node@6/bin:/usr/local/share/npm/bin:/usr/local/sbin:/usr/local/bin:$HOME/.rvm/bin:$PATH"
+export PATH="$(yarn global bin):$PATH"
 
 # Per the rbenv docs, uses Homebrew dirs instead of ~/.rbenv for rbenv
 export RBENV_ROOT="/usr/local/var/rbenv"
@@ -14,4 +15,4 @@ if [[ -s "$HOME/.work/bashrc" ]]; then
     source "$HOME/.work/bashrc"
 fi
 
-export JAVA_HOME=$(/usr/libexec/java_home -version 1.8)
+# export JAVA_HOME=$(/usr/libexec/java_home -version 1.8)
