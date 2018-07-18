@@ -7,6 +7,7 @@ bind '"\e[A":history-search-backward'
 bind '"\e[B":history-search-forward'
 
 if which rbenv > /dev/null; then eval "$(rbenv init -)"; fi
+if which nodenv > /dev/null; then eval "$(nodenv init -)"; fi
 
 alias ll='ls -l'
 

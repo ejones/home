@@ -1,3 +1,8 @@
+snippet     import
+alias       imp
+options     head
+    import ${2:${3\} from }'${1:#:place}';
+
 # Calling a function with a closure
 snippet     closure
 alias       clo
@@ -72,7 +77,15 @@ snippet     mocha-before
 abbr        before(() => {...});
 alias       before
 options     head
-    ${1:before}(${2:()} => {
+    before${1}(() => {
+        ${0:TARGET}
+    });
+
+snippet     mocha-after
+abbr        after(() => {...});
+alias       after
+options     head
+    after${1}(() => {
         ${0:TARGET}
     });
 
@@ -261,3 +274,25 @@ options     head
     componentDidUpdate(prevProps, prevState) {
       ${0:TARGET}
     }
+
+snippet     react-func-component
+abbr        const MyComponent = (props) => {...}
+alias       rfc
+options     head
+    import PropTypes from 'prop-types';
+    import React from 'react';
+
+    const ${1:`expand('%:r')`} = (className, ${2:#:other props}) =>
+      <div className={\`$1 ${className}\`}>
+      </div>;
+
+    $1.propTypes = {
+      className: PropTypes.string,
+      $2
+    };
+
+    $1.defaultProps = {
+      className: '',
+    };
+
+    export default $1;
