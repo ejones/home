@@ -296,3 +296,29 @@ options     head
     };
 
     export default $1;
+
+snippet     react-component
+alias       rc
+options     head
+    import PropTypes from 'prop-types';
+    import React from 'react';
+
+    class ${1:`expand('%:r')`} extends React.Component {
+      static propTypes = {
+        className: PropTypes.string,
+      };
+
+      static defaultProps = {
+        className: '',
+      };
+
+      render() {
+        return (
+          <div className={\`$1 ${className}\`}>
+          </div>
+        );
+      }
+    }
+
+    export default $1;
+
