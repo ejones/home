@@ -2,4 +2,4 @@ let current_compiler = "arc"
 
 CompilerSet makeprg=arc\ lint\ --output\ summary
 
-CompilerSet errorformat&
+CompilerSet errorformat=%f:%l:%c:%m,%f:%l:%m

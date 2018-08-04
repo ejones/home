@@ -100,3 +100,18 @@
 [submodule ".vim/bundle/vim-vinegar"]
 	path = .vim/bundle/vim-vinegar
 	url = https://github.com/tpope/vim-vinegar
+[submodule ".vim/bundle/vim-rvm"]
+	path = .vim/bundle/vim-rvm
+	url = https://github.com/tpope/vim-rvm.git
+[submodule ".vim/bundle/vim-apathy"]
+	path = .vim/bundle/vim-apathy
+	url = https://github.com/tpope/vim-apathy.git
+[submodule ".vim/bundle/vim-speeddating"]
+	path = .vim/bundle/vim-speeddating
+	url = https://github.com/tpope/vim-speeddating.git
+[submodule ".vim/bundle/vim-submode"]
+	path = .vim/bundle/vim-submode
+	url = https://github.com/kana/vim-submode.git
+[submodule ".vim/bundle/vim-scriptease"]
+	path = .vim/bundle/vim-scriptease
+	url = https://github.com/tpope/vim-scriptease

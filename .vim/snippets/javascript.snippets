@@ -322,3 +322,16 @@ options     head
 
     export default $1;
 
+snippet     eslint-disable-block
+abbr        /* eslint-disable rule */
+alias       lintd
+options     head
+    /* eslint-disable ${1:camelcase} */
+    ${0:TARGET}
+    /* eslint-enable $1 */
+
+snippet     eslint-disable-line
+abbr        // eslint-disable-line rule
+alias       lintdl
+options     word
+    // eslint-disable${1:-next}-line ${2:camelcase}

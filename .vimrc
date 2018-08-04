@@ -1,129 +1,104 @@
 if filereadable($HOME."/.vim/autoload/pathogen.vim")
-    let g:pathogen_disabled = []
-    if !has('gui_running')
-        call add(g:pathogen_disabled, 'vim-css-color')
-        call add(g:pathogen_disabled, 'deoplete.nvim')
-    endif
-    execute pathogen#infect()
-    Helptags
+  let g:pathogen_disabled = []
+  if !has('gui_running')
+    call add(g:pathogen_disabled, 'vim-css-color')
+    call add(g:pathogen_disabled, 'deoplete.nvim')
+  endif
+  execute pathogen#infect()
+  Helptags
 endif
 
-" make changes to *this* file live
+" make changes to vimrc live
 if !exists("g:did_liven_vimrc")
-    let g:did_liven_vimrc=1
-    au BufWritePost .vimrc so %
+  let g:did_liven_vimrc = 1
+  autocmd BufWritePost {.,}vimrc source %
 endif
 
-" standard editor setup
-set ai ml mls=5 et sts=4 ts=4 sw=4 ls=2 bs=2 bg=light
-  \ stl=%t\ %y\ %r\ %m\ %{fugitive#statusline()}%=%c,%l/%L
-  \ nu hid lazyredraw autoread splitright
-  \ previewheight=20
-  \ colorcolumn=100
-  \ clipboard=unnamed
-  \ wildmenu
-filetype on
-filetype indent plugin on
-syntax on
-let mapleader = ','
+" Settings
+set autoindent
+      \ autoread
+      \ autowrite
+      \ modeline
+      \ modelines=5
+      \ expandtab
+      \ softtabstop=2
+      \ tabstop=2
+      \ shiftwidth=2
+      \ laststatus=2
+      \ backspace=2
+      \ statusline=%t\ %y\ %r\ %m\ %{fugitive#statusline()}%=%c,%l/%L
+      \ lazyredraw
+      \ splitright
+      \ incsearch
+      \ hidden
+      \ history=200
+      \ number
+      \ relativenumber
+      \ previewheight=20
+      \ colorcolumn=100
+      \ clipboard=unnamed
+      \ wildmenu
+      \ wildmode=longest:full,full
+      \ cmdheight=2
+      \ linebreak
+      \ showcmd
+
+if exists('+breakindent')
+  set breakindent showbreak=\ +
+endif
 
 " Searching
 set grepprg=rg\ --color=never
 set wildignore+=*/.git/*,*/tmp/*,*.so,*.swp
 
-" switch dir on BufEnter
-au BufEnter * silent! lcd %:p:h
-
 " Wrap left and right movement
 set whichwrap+=<,>,h,l,[,]
 
-" make gf work on new files too
-noremap gf :e <cfile><CR>
-
-" switch : and ;
-noremap : ;
-noremap ; :
+filetype plugin indent on
+syntax on
 
 " Colors - Solarized
 if has("gui_running")
-    colors solarized
+  colors solarized
 endif
 
-au! BufRead,BufNewFile *.snap setlocal ft=javascript.jsx
+augroup Misc
+  autocmd! 
+  autocmd BufEnter * silent! lcd %:p:h " switch dir on BufEnter
+augroup END
 
-" It seems like by default, *.tpl is associated with smarty templates
-au! BufRead,BufNewFile *.tpl setlocal ft=html
+augroup FTCheck
+  autocmd!
+  autocmd BufRead,BufNewFile *.snap setlocal ft=javascript.jsx
+augroup END
 
-au! BufNewFile *.test.jsx ProjectDo %! node bin/gen-test.js %:p:h:h/%:t:r:r.jsx -
+augroup FTOptions
+  autocmd!
 
-" smaller indent for markup and cs, js and css...
-au! FileType \(xml\|html\|soy\|coffee\|javascript\|css\|less\|yaml\|ruby\) setlocal sw=2 sts=2
+  " cindent for C-like languages
+  autocmd FileType \(cs\|cpp\|c\|java\) setlocal cindent
 
-" cindent for C-like languages
-au! FileType \(cs\|cpp\|c\|java\) setlocal cindent
+  autocmd FileType \(html\|json\|css\|less\|javascript\|javascript.jsx\)
+        \ setlocal foldmethod=indent | normal zR
 
-" html has some long lines man
-" json does not support line breaks in strings so by definition there may be
-" really long lines
-au! FileType \(html\|json\|css\|less\) setlocal nowrap foldmethod=indent | normal zR
-
-au! FileType \(javascript\|javascript.jsx\) setlocal foldmethod=indent | normal zR
-
-" Text files - wrap better
-au! FileType \(text\|markdown\) setlocal wrap linebreak nolist
-
-au! FileType python setlocal makeprg=python\ % errorformat=
-
-command! -nargs=1 -complete=file ZipOpen
-\  edit <args>
-\| if !exists("b:zipfile")
-\|   call zip#Browse("<args>")
-\| endif
-
-function! s:open_python_module(modname) abort
-    let l:path = system('python -c "import inspect as I,"'.shellescape(a:modname).'" as M;'.
-\                                  'print (I.getsourcefile(M))"')
-
-    if v:shell_error
-        echo l:path
-        return
-    endif
-
-    let l:path = substitute(l:path, '\n', '', '')
-
-    if !filereadable(l:path)
-        let l:egg_ext = '.egg/'
-        let l:idx = strridx(l:path, l:egg_ext)
-        if l:idx != -1
-            let l:egg_path = strpart(l:path, 0, l:idx + len(l:egg_ext) - 1)
-            if filereadable(l:egg_path)
-                " REVIEW: this seems to trigger zip.vim opening the zip file
-                " within the zip file 
-                let l:path = 'zipfile:'.l:egg_path.'::'.strpart(l:path, l:idx + len(l:egg_ext))
-            endif
-        endif
-    endif
-
-    exe 'edit '.fnameescape(l:path)
-endfunction
-
-command! -nargs=1 PyOpen call s:open_python_module("<args>")
+  autocmd FileType python setlocal makeprg=python\ % errorformat= sts=4 sw=4 ts=4
+augroup END
 
 " Switch Projects - switches to a recently-used file in a project that matches
 " the given name
 function! s:open_project(command, name) abort
-    let l:files = filter(ctrlp#mrufiles#list('raw'),
-                \ "v:val =~# '^" . expand('$HOME') . "/" . a:name . "'")
-    
-    if empty(l:files)
-        let l:files = glob("$HOME/" . a:name . '*/*.*', 0, 1)
-    endif
+  let l:files = filter(ctrlp#mrufiles#list('raw'),
+        \ "v:val =~# '^" . expand('$HOME') . "/" . a:name . "'")
 
-    if empty(l:files)
-        return 'echoerr "No files found"'
-    endif
+  if empty(l:files)
+    let l:files = glob("$HOME/" . a:name . '*/*.*', 0, 1)
+  endif
 
-    return a:command . ' ' . fnameescape(l:files[0])
+  if empty(l:files)
+    return 'echoerr "No files found"'
+  endif
+
+  return a:command . ' ' . fnameescape(l:files[0])
 endfunction
 
 command! -nargs=1 Eproject execute s:open_project('edit', "<args>")
@@ -132,34 +107,53 @@ command! -nargs=1 Vproject execute s:open_project('vsplit', "<args>")
 command! -nargs=1 Tproject execute s:open_project('tabedit', "<args>")
 
 " Scratch
-au! BufNewFile \*scratch\* setlocal bt=nofile bh=hide noswf bl
-command! -bar Scratch
-\  let g:lastdir=expand("%:p:h")
-\| wincmd o
-\| wincmd v
-\| exec "normal zz"
-\| wincmd w
-\| e \*scratch\*
-\| exec "lcd ".g:lastdir
+command! -bar -nargs=? -bang Scratch
+      \ :silent enew<bang> |
+      \ set buftype=nofile bufhidden=hide noswapfile buflisted filetype=<args> modifiable
 
-" v_if - text object for file under cursor
-function! s:select_cursor_file() abort
-    let l:cfile = expand("<cfile>")
-    if l:cfile == "" || !search(l:cfile, "b", line("."))
-        return
-    endif
-    exe "normal v".(len(l:cfile) - 1)."l"
+command! -nargs=* SubWord exec "%s/\\<" . expand("<cword>") . "\\>/" . <q-args>
+
+function! s:term_edit_line(buf) abort
+  let buf = bufnr(a:buf)
+
+  call term_sendkeys(buf, "\<C-a>\<C-k>")
+  call term_wait(buf)
+  let prompt = term_getline(buf, '.')
+
+  10split enew
+  setlocal buftype=nofile
+        \ bufhidden=unload
+        \ noswapfile
+        \ buflisted
+        \ modifiable
+
+  put! =getbufline(buf, 1, '$')
+  execute '%substitute/\V\^' . substitute(prompt, '\\\|/', '\\\0', 'g') . '//'
+
+  execute 'nnoremap <buffer> <C-C> :call <SID>term_finish_editing("", ' . buf . ')<CR>'
+  execute 'inoremap <buffer> <C-C> <C-O>:call <SID>term_finish_editing("", ' . buf . ')<CR>'
+  execute 'vnoremap <buffer> <C-C> :<C-U>call <SID>term_finish_editing("", ' . buf . ')<CR>'
+  execute 'nnoremap <buffer> <Enter> :call <SID>term_finish_editing("", ' . buf . ')<CR><CR>'
+  execute 'inoremap <buffer> <Enter> <C-O>:call <SID>term_finish_editing("", ' . buf . ')<CR><CR>'
+  execute 'vnoremap <buffer> <Enter> :<C-U>call <SID>term_finish_editing("", ' . buf . ')<CR><CR>'
 endfunction
 
-vnoremap if :<C-U>call <SID>select_cursor_file()<CR>
-onoremap if :call <SID>select_cursor_file()<CR>
+function! s:term_finish_editing(edit_buf, term_buf) abort
+  let edit_buf = bufnr(a:edit_buf)
+  let term_buf = bufnr(a:term_buf)
+  let edit_buf_info = getbufinfo(edit_buf)[0]
+  let edited_command = getbufline(edit_buf, edit_buf_info.lnum)[0]
+
+  call term_sendkeys(term_buf, edited_command)
+  call term_wait(term_buf)
+
+  execute 'bunload! ' . edit_buf
+  execute 'buffer ' . term_buf
+endfunction
+
+" Plugin Settings
 
 " Neosnippet
-" Plugin key-mappings.
-imap <C-k>     <Plug>(neosnippet_expand_or_jump)
-smap <C-k>     <Plug>(neosnippet_expand_or_jump)
-xmap <C-k>     <Plug>(neosnippet_expand_target)
-
 let g:neosnippet#snippets_directory='~/.vim/snippets'
 
 " Deoplete
@@ -173,87 +167,51 @@ let g:ctrlp_use_caching = 0
 let g:rg_highlight = 1
 let g:rg_derive_root = 1
 
-" Projectionist
-let s:reporter_arg = '--reporters=' . expand('$HOME') . '/.js/reporters/jest-simple-reporter'
-let s:yarn_dispatch = 'yarn --silent test /{basename}. ' . s:reporter_arg
-let g:projectionist_heuristics = {
-      \   'package.json&src/index.js*': {
-      \     'src/*.jsx': {
-      \       'type': 'source',
-      \       'alternate': [
-      \         'src/{dirname}/{basename}.less',
-      \         'src/{dirname}/__tests__/{basename}.test.jsx'
-      \       ],
-      \       'dispatch': s:yarn_dispatch
-      \     },
-      \     'src/**/__tests__/*.test.jsx': {
-      \       'type': 'test',
-      \       'alternate': [
-      \         'src/{dirname}/{basename}.jsx'
-      \       ],
-      \       'dispatch': s:yarn_dispatch
-      \     },
-      \     'src/*.less': {
-      \       'type': 'style',
-      \       'alternate': [
-      \         'src/{dirname}/{basename}.jsx',
-      \       ],
-      \       'template': [
-      \         '.{basename} {open}',
-      \         '',
-      \         '{close}'
-      \       ],
-      \     },
-      \     'README.md': {'type': 'doc'},
-      \     '*': {'make': 'arc lint --output summary'}
-      \   },
-      \   'Gemfile': {
-      \     'app/models/*.rb': {
-      \       'type': 'model',
-      \       'alternate': [
-      \         'db/schema.rb{lnum|nothing}',
-      \         'spec/models/{}_spec.rb',
-      \         'app/controllers/private_api/v1/{basename|plural}_controller.rb',
-      \         'app/controllers/private_api/dashboard/v1/{basename|plural}_controller.rb',
-      \         'app/controllers/public_api/v1/{basename|plural}_controller.rb',
-      \         'app/controllers/admin/{basename|plural}_controller.rb'
-      \       ]
-      \     },
-      \     'app/controllers/*_controller.rb': {
-      \       'type': 'controller',
-      \       'alternate': [
-      \         'app/views/{}/index.html.haml{lnum|nothing}',
-      \         'spec/controllers/{}_controller_spec.rb',
-      \         'app/models/{basename|singular}.rb'
-      \       ]
-      \     },
-      \     'app/views/*.html.haml': {
-      \       'type': 'view',
-      \       'alternate': 'app/controllers/{dirname}_controller.rb'
-      \     },
-      \     'spec/*_spec.rb': {
-      \       'type': 'spec',
-      \       'alternate': 'app/{}.rb'
-      \     },
-      \     'db/schema.rb': {'type': 'schema'},
-      \     'README.md': {'type': 'doc'}
-      \   }
-      \ }
+" Dispatch
+let g:dispatch_compilers = {'sh -c "': ''}
 
-" Emmet.
+" Emmet
 let g:user_emmet_settings = {
-\   'html': {
-\       'indentation': '  '
-\   }
-\}
+      \   'html': {
+      \       'indentation': '  '
+      \   }
+      \}
 
-command! -nargs=* SubWord exec "%s/\\<" . expand("<cword>") . "\\>/" . <q-args>
+" Mappings
+let mapleader = ','
 
-" Leader mappings
-nnoremap <Leader>w :bd<cr>
-nnoremap <Leader>b :CtrlPBuffer<cr>
-nnoremap <Leader>; :CtrlPCmdline<CR>
+" switch : and ;
+noremap : ;
+noremap ; :
+
+" v_if - text object for file under cursor
+function! s:select_cursor_file() abort
+  let l:cfile = expand("<cfile>")
+  if l:cfile == "" || !search(l:cfile, "b", line("."))
+    return
+  endif
+  exe "normal v".(len(l:cfile) - 1)."l"
+endfunction
+
+vnoremap if :<C-U>call <SID>select_cursor_file()<CR>
+onoremap if :call <SID>select_cursor_file()<CR>
+
+" Neosnippet mappings
+imap <C-k>     <Plug>(neosnippet_expand_or_jump)
+smap <C-k>     <Plug>(neosnippet_expand_or_jump)
+xmap <C-k>     <Plug>(neosnippet_expand_target)
+
+nnoremap <Leader>w :bd<CR>
 
 " selecting pasted text.
 " from http://vim.wikia.com/wiki/Selecting_your_pasted_text
 nnoremap <expr> gp '`[' . strpart(getregtype(), 0, 1) . '`]'
+
+" Edit command line in :terminal
+if has('terminal')
+  tnoremap <C-F> <C-W>:call <SID>term_edit_line('')<CR>
+endif
+
+if filereadable(expand("~/.work/vimrc"))
+  source ~/.work/vimrc
+endif
