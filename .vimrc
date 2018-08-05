@@ -131,41 +131,62 @@ function! s:term_edit_line(buf) abort
     endif
   endif
 
+  let continuation_pattern = get(g:, 'term_prompt_continuation_pattern', '$^')
+
   call term_sendkeys(buf, original_term_line[len(current_prompt):])
 
-  10new [Terminal Command Line]
+  execute &cmdwinheight 'new [Terminal Command Line]'
   setlocal buftype=nofile
         \ bufhidden=unload
         \ noswapfile
         \ nobuflisted
         \ modifiable
+        \ norightleft
 
-  silent put! =getbufline(buf, 1, '$')
-  execute 'silent global!/' . prompt_pattern . '/d'
-  execute 'silent %substitute/' . prompt_pattern . '//'
+  let lines = getbufline(buf, 1, '$')
+  call map(lines,
+        \ 'v:val =~# prompt_pattern ? substitute(v:val, prompt_pattern, "", "")' .
+        \ ' : v:val =~# continuation_pattern ? substitute(v:val, continuation_pattern, "", "")' .
+        \ ' : ""')
+  call filter(lines, '!empty(v:val)')
+
+  silent put! =lines
 
   execute 'nnoremap <buffer> <C-C> :call <SID>term_finish_editing("", ' . buf . ')<CR>'
   execute 'inoremap <buffer> <C-C> <C-O>:call <SID>term_finish_editing("", ' . buf . ')<CR>'
-  execute 'vnoremap <buffer> <C-C> :<C-U>call <SID>term_finish_editing("", ' . buf . ')<CR>'
+  execute 'vnoremap <buffer> <C-C> ' .
+        \ ':<C-U>call <SID>term_finish_editing("", ' . buf . ', line("''<"), line("''>"))<CR>'
+
   execute 'nnoremap <buffer> <Enter> :call <SID>term_finish_editing("", ' . buf . ')<CR><CR>'
   execute 'inoremap <buffer> <Enter> <C-O>:call <SID>term_finish_editing("", ' . buf . ')<CR><CR>'
-  execute 'vnoremap <buffer> <Enter> :<C-U>call <SID>term_finish_editing("", ' . buf . ')<CR><CR>'
+  execute 'vnoremap <buffer> <Enter> ' .
+        \ ':<C-U>call <SID>term_finish_editing("", ' . buf . ', line("''<"), line("''>"))<CR><CR>'
 
   autocmd! WinLeave <buffer> bunload
 endfunction
 
-function! s:term_finish_editing(edit_buf, term_buf) abort
+function! s:term_finish_editing(edit_buf, term_buf, ...) abort
   let edit_buf = bufnr(a:edit_buf)
   let term_buf = bufnr(a:term_buf)
-  let edit_buf_info = getbufinfo(edit_buf)[0]
-  let edited_command = getbufline(edit_buf, edit_buf_info.lnum)[0]
 
-  call term_sendkeys(term_buf, "\<C-A>\<C-K>" . edited_command)
+  if a:0
+    let start_line = a:1
+    let end_line = a:2
+  else
+    let start_line = getbufinfo(edit_buf)[0].lnum
+    let end_line = start_line
+  endif
+
+  let edited_command = getbufline(edit_buf, start_line, end_line)
+
+  call term_sendkeys(term_buf, "\<C-A>\<C-K>" . join(edited_command, "\n"))
   call term_wait(term_buf)
 
   execute 'bunload! ' . edit_buf
   execute 'buffer ' . term_buf
 endfunction
+
+let g:term_prompt_continuation_pattern = '\V\^\(...\|>\|irb\.\{-\}*\|[\d\+] pry\.\{-\}*\) '
 
 " Plugin Settings
 
