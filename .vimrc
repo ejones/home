@@ -116,19 +116,33 @@ command! -nargs=* SubWord exec "%s/\\<" . expand("<cword>") . "\\>/" . <q-args>
 function! s:term_edit_line(buf) abort
   let buf = bufnr(a:buf)
 
-  call term_sendkeys(buf, "\<C-a>\<C-k>")
+  let original_term_line = term_getline(buf, '.')
+  call term_sendkeys(buf, "\<C-A>\<C-K>")
   call term_wait(buf)
-  let prompt = term_getline(buf, '.')
+  let current_prompt = term_getline(buf, '.')
 
-  10split enew
+  let prompt_pattern = getbufvar(buf, 'term_prompt_pattern')
+
+  if !prompt_pattern
+    let prompt_start = matchstr(current_prompt, '^\(\W\+\|\w\+\)')
+    let prompt_pattern = '\V\^' . prompt_start
+    if current_prompt !~# '^\W\+\s*$'
+      let prompt_pattern .= '\.\{-\}' . matchstr(current_prompt, '\W\s*$')
+    endif
+  endif
+
+  call term_sendkeys(buf, original_term_line[len(current_prompt):])
+
+  10new [Terminal Command Line]
   setlocal buftype=nofile
         \ bufhidden=unload
         \ noswapfile
-        \ buflisted
+        \ nobuflisted
         \ modifiable
 
-  put! =getbufline(buf, 1, '$')
-  execute '%substitute/\V\^' . substitute(prompt, '\\\|/', '\\\0', 'g') . '//'
+  silent put! =getbufline(buf, 1, '$')
+  execute 'silent global!/' . prompt_pattern . '/d'
+  execute 'silent %substitute/' . prompt_pattern . '//'
 
   execute 'nnoremap <buffer> <C-C> :call <SID>term_finish_editing("", ' . buf . ')<CR>'
   execute 'inoremap <buffer> <C-C> <C-O>:call <SID>term_finish_editing("", ' . buf . ')<CR>'
@@ -136,6 +150,8 @@ function! s:term_edit_line(buf) abort
   execute 'nnoremap <buffer> <Enter> :call <SID>term_finish_editing("", ' . buf . ')<CR><CR>'
   execute 'inoremap <buffer> <Enter> <C-O>:call <SID>term_finish_editing("", ' . buf . ')<CR><CR>'
   execute 'vnoremap <buffer> <Enter> :<C-U>call <SID>term_finish_editing("", ' . buf . ')<CR><CR>'
+
+  autocmd! WinLeave <buffer> bunload
 endfunction
 
 function! s:term_finish_editing(edit_buf, term_buf) abort
@@ -144,7 +160,7 @@ function! s:term_finish_editing(edit_buf, term_buf) abort
   let edit_buf_info = getbufinfo(edit_buf)[0]
   let edited_command = getbufline(edit_buf, edit_buf_info.lnum)[0]
 
-  call term_sendkeys(term_buf, edited_command)
+  call term_sendkeys(term_buf, "\<C-A>\<C-K>" . edited_command)
   call term_wait(term_buf)
 
   execute 'bunload! ' . edit_buf
