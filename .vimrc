@@ -2,7 +2,6 @@ if filereadable($HOME."/.vim/autoload/pathogen.vim")
   let g:pathogen_disabled = []
   if !has('gui_running')
     call add(g:pathogen_disabled, 'vim-css-color')
-    call add(g:pathogen_disabled, 'deoplete.nvim')
   endif
   execute pathogen#infect()
   Helptags
@@ -28,9 +27,7 @@ set autoindent
       \ backspace=2
       \ statusline=%t\ %y\ %r\ %m\ %{fugitive#statusline()}%=%c,%l/%L
       \ lazyredraw
-      \ splitright
       \ incsearch
-      \ hidden
       \ history=200
       \ number
       \ relativenumber
@@ -45,6 +42,10 @@ set autoindent
 
 if exists('+breakindent')
   set breakindent showbreak=\ +
+endif
+
+if exists('+undofile')
+  set undofile
 endif
 
 " Searching
@@ -63,7 +64,7 @@ if has("gui_running")
 endif
 
 augroup Misc
-  autocmd! 
+  autocmd!
   autocmd BufEnter * silent! lcd %:p:h " switch dir on BufEnter
 augroup END
 
@@ -113,82 +114,10 @@ command! -bar -nargs=? -bang Scratch
 
 command! -nargs=* SubWord exec "%s/\\<" . expand("<cword>") . "\\>/" . <q-args>
 
-function! s:term_edit_line(buf) abort
-  let buf = bufnr(a:buf)
-
-  let original_term_line = term_getline(buf, '.')
-  call term_sendkeys(buf, "\<C-A>\<C-K>")
-  call term_wait(buf)
-  let current_prompt = term_getline(buf, '.')
-
-  let prompt_pattern = getbufvar(buf, 'term_prompt_pattern')
-
-  if !prompt_pattern
-    let prompt_start = matchstr(current_prompt, '^\(\W\+\|\w\+\)')
-    let prompt_pattern = '\V\^' . prompt_start
-    if current_prompt !~# '^\W\+\s*$'
-      let prompt_pattern .= '\.\{-\}' . matchstr(current_prompt, '\W\s*$')
-    endif
-  endif
-
-  let continuation_pattern = get(g:, 'term_prompt_continuation_pattern', '$^')
-
-  call term_sendkeys(buf, original_term_line[len(current_prompt):])
-
-  execute &cmdwinheight 'new [Terminal Command Line]'
-  setlocal buftype=nofile
-        \ bufhidden=unload
-        \ noswapfile
-        \ nobuflisted
-        \ modifiable
-        \ norightleft
-
-  let lines = getbufline(buf, 1, '$')
-  call map(lines,
-        \ 'v:val =~# prompt_pattern ? substitute(v:val, prompt_pattern, "", "")' .
-        \ ' : v:val =~# continuation_pattern ? substitute(v:val, continuation_pattern, "", "")' .
-        \ ' : ""')
-  call filter(lines, '!empty(v:val)')
-
-  silent put! =lines
-
-  execute 'nnoremap <buffer> <C-C> :call <SID>term_finish_editing("", ' . buf . ')<CR>'
-  execute 'inoremap <buffer> <C-C> <C-O>:call <SID>term_finish_editing("", ' . buf . ')<CR>'
-  execute 'vnoremap <buffer> <C-C> ' .
-        \ ':<C-U>call <SID>term_finish_editing("", ' . buf . ', line("''<"), line("''>"))<CR>'
-
-  execute 'nnoremap <buffer> <Enter> :call <SID>term_finish_editing("", ' . buf . ')<CR><CR>'
-  execute 'inoremap <buffer> <Enter> <C-O>:call <SID>term_finish_editing("", ' . buf . ')<CR><CR>'
-  execute 'vnoremap <buffer> <Enter> ' .
-        \ ':<C-U>call <SID>term_finish_editing("", ' . buf . ', line("''<"), line("''>"))<CR><CR>'
-
-  autocmd! WinLeave <buffer> bunload
-endfunction
-
-function! s:term_finish_editing(edit_buf, term_buf, ...) abort
-  let edit_buf = bufnr(a:edit_buf)
-  let term_buf = bufnr(a:term_buf)
-
-  if a:0
-    let start_line = a:1
-    let end_line = a:2
-  else
-    let start_line = getbufinfo(edit_buf)[0].lnum
-    let end_line = start_line
-  endif
-
-  let edited_command = getbufline(edit_buf, start_line, end_line)
-
-  call term_sendkeys(term_buf, "\<C-A>\<C-K>" . join(edited_command, "\n"))
-  call term_wait(term_buf)
-
-  execute 'bunload! ' . edit_buf
-  execute 'buffer ' . term_buf
-endfunction
-
-let g:term_prompt_continuation_pattern = '\V\^\(...\|>\|irb\.\{-\}*\|[\d\+] pry\.\{-\}*\) '
-
 " Plugin Settings
+
+" let g:terminal_command_window#continuation_pattern =
+"       \ '\V\^\(...\|>\|irb\.\{-\}*\|[\d\+] pry\.\{-\}*\) '
 
 " Neosnippet
 let g:neosnippet#snippets_directory='~/.vim/snippets'
@@ -205,7 +134,8 @@ let g:rg_highlight = 1
 let g:rg_derive_root = 1
 
 " Dispatch
-let g:dispatch_compilers = {'sh -c "': ''}
+let g:dispatch_compilers = {'sh -c "': '', 'arc lint': 'yarn', 'bundle exec': ''}
+let g:dispatch_terminal_start_mods = 'belowright vertical'
 
 " Emmet
 let g:user_emmet_settings = {
@@ -213,6 +143,9 @@ let g:user_emmet_settings = {
       \       'indentation': '  '
       \   }
       \}
+
+" Markdown Preview
+let g:vim_markdown_preview_github = 1
 
 " Mappings
 let mapleader = ','
@@ -244,9 +177,12 @@ nnoremap <Leader>w :bd<CR>
 " from http://vim.wikia.com/wiki/Selecting_your_pasted_text
 nnoremap <expr> gp '`[' . strpart(getregtype(), 0, 1) . '`]'
 
-" Edit command line in :terminal
 if has('terminal')
-  tnoremap <C-F> <C-W>:call <SID>term_edit_line('')<CR>
+  " Edit command line in :terminal
+  tnoremap <CR> <C-W>:call terminal_command_window#add_and_execute_line('')<CR>
+  tnoremap <C-F> <C-W>:call terminal_command_window#edit_line('')<CR>
+
+  tnoremap <C-W>; <C-W>:
 endif
 
 if filereadable(expand("~/.work/vimrc"))

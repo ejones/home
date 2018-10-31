@@ -1,18 +1,45 @@
-export PATH="$HOME/bin:$HOME/arcanist/arcanist/bin:$HOME/.cljr/bin:$HOME/.rbenv/bin:/usr/local/opt/node@6/bin:/usr/local/share/npm/bin:/usr/local/sbin:/usr/local/bin:$HOME/.rvm/bin:$PATH"
-export PATH="$(yarn global bin):$PATH"
+bind '"\t":menu-complete'
+bind '"\e[A":history-search-backward'
+bind '"\e[B":history-search-forward'
 
-# Per the rbenv docs, uses Homebrew dirs instead of ~/.rbenv for rbenv
-export RBENV_ROOT="/usr/local/var/rbenv"
+alias ll='ls -l'
 
-# These lines update PATH for the Google Cloud SDK.
-GOOGLE_CLOUD_PATH="$HOME/google-cloud-sdk/path.bash.inc"
-if [[ -f "$GOOGLE_CLOUD_PATH" ]]; then
-    source "$GOOGLE_CLOUD_PATH"
-fi
+alias gs='git status'
+alias ga='git add'
+alias gd='git diff'
+alias gc='git checkout'
+alias gco='git commit -v'
+alias gf='git fetch'
+alias gm='git merge'
+alias gp='git push'
+alias gpoh='git push origin HEAD'
+alias gl='git log --left-right'
+alias glg='git log-graph --left-right'
+alias gst='git stash'
+alias gsm='git submodule'
+alias gsmup='git submodule update --init --recursive'
+alias gr='git reset'
+alias gsh='git show'
+alias gff='git merge --ff-only'
+alias gre='git rebase'
+alias gb='git branch'
+alias fixup='git commit --amend --no-edit'
+
+alias yt='yarn test'
+alias ytu='yarn test -u'
+
+alias cdiff140s='cdiff -w140 -s'
+alias cdiff0s='cdiff -w0 -s'
+
+alias simple-http='python -mSimpleHTTPServer'
+alias grasp='grasp -x js,jsx --parser "(flow-parser, { esproposal_class_instance_fields: true, esproposal_class_static_fields: true, esproposal_decorators: true, esproposal_export_star_as: true, types: true})"'
+
+alias track-ordev='set-upstream origin/develop'
+
+alias gdcas='gds --cached'
 
 # Work-specific settings/scripts. Not synced publicly!
 if [[ -s "$HOME/.work/bashrc" ]]; then
     source "$HOME/.work/bashrc"
 fi
 
-# export JAVA_HOME=$(/usr/libexec/java_home -version 1.8)
