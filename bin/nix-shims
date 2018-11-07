@@ -1,0 +1,84 @@
+#!/usr/bin/env bash
+set -e
+
+shims_dir="$HOME/.nix-shims"
+
+shim_code=$(cat <<'EOF'
+#!/usr/bin/env bash
+set -e
+
+nix_file="$PWD"
+while ! [[ "$nix_file" =~ ^//[^/]*$ ]]; do
+  if [ -s "${nix_file}/shell.nix" ]; then
+    nix_file="${nix_file}/shell.nix"
+    break
+  fi
+  if [ -s "${nix_file}/default.nix" ]; then
+    nix_file="${nix_file}/default.nix"
+    break
+  fi
+  [ -n "$nix_file" ] || break
+  nix_file="${nix_file%/*}"
+done
+
+if [ -f "$nix_file" ]; then
+  exec nix-shell --pure "$nix_file" --run "${0##*/}$(for a in "$@"; do printf " %q" "$a"; done)"
+else
+  PATH="$(awk 'BEGIN { s=ENVIRON["PATH"]; sub(/[^:]+\/\.nix-shims:/, "", s); print s;  }')" \
+    exec "${0##*/}" "$@"
+fi
+EOF
+)
+
+case $1 in
+  init)
+    echo 'export PATH="$HOME/.nix-shims:$PATH"'
+    ;;
+
+  dir)
+    echo "$shims_dir"
+    ;;
+
+  ls|list)
+    if [ -d "$shims_dir" ]; then
+      ls "$shims_dir" | grep -v '^_'
+    fi
+    ;;
+
+  add)
+    if [ -z "$2" ]; then
+      echo >&2 "$0: $1: requires an argument"
+      exit 1
+    fi
+
+    # Ensure ~/.nix-shims is set up
+    mkdir -p "$shims_dir"
+    echo "$shim_code"  >"$shims_dir/_nix_shim"
+    chmod +x "$shims_dir/_nix_shim"
+
+    # Actually add the shims
+    for arg in ${@:2}; do
+      if [ ! -e "$shims_dir/$arg" ]; then
+        ln -s _nix_shim "$shims_dir/$arg"
+      fi
+    done
+    ;;
+
+  rm|remove)
+    if [ -z "$2" ]; then
+      echo >&2 "$0: $1: requires an argument"
+      exit 1
+    fi
+
+    for arg in ${@:2}; do
+      if [ -f "$shims_dir/$arg" ]; then
+        rm "$shims_dir/$arg"
+      fi
+    done
+    ;;
+
+  *)
+    echo >&2 "$0: unrecognized command '$1'"
+    exit 1
+    ;;
+esac

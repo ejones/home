@@ -15,8 +15,10 @@ fi
 
 # export JAVA_HOME=$(/usr/libexec/java_home -version 1.8)
 
-if type rbenv >/dev/null 2>&1; then eval "$(rbenv init - --no-rehash)"; fi
-if type nodenv >/dev/null 2>&1; then eval "$(nodenv init - --no-rehash)"; fi
+# type rbenv >/dev/null 2>&1 && eval "$(rbenv init - --no-rehash)"; fi
+# type nodenv >/dev/null 2>&1 && eval "$(nodenv init - --no-rehash)"; fi
+
+type nix-shims >/dev/null 2>&1 && eval "$(nix-shims init)"
 
 if [[ -f ~/.bashrc ]]; then . ~/.bashrc; fi
 
@@ -75,3 +77,4 @@ for f in $(command ls ~/.node-completion); do
   test -f "$f" && . "$f"
 done
 # }}}
+if [ -e /Users/evan/.nix-profile/etc/profile.d/nix.sh ]; then . /Users/evan/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
