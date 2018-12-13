@@ -1,3 +1,5 @@
+[[ $(uname) = Darwin ]] && PS1=$'\\u:\\W$ '
+
 bind '"\t":menu-complete'
 bind '"\e[A":history-search-backward'
 bind '"\e[B":history-search-forward'
@@ -37,6 +39,8 @@ alias grasp='grasp -x js,jsx --parser "(flow-parser, { esproposal_class_instance
 alias track-ordev='set-upstream origin/develop'
 
 alias gdcas='gds --cached'
+
+alias nsh='nix-shell --pure'
 
 # Work-specific settings/scripts. Not synced publicly!
 if [[ -s "$HOME/.work/bashrc" ]]; then

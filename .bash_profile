@@ -15,8 +15,8 @@ fi
 
 # export JAVA_HOME=$(/usr/libexec/java_home -version 1.8)
 
-# type rbenv >/dev/null 2>&1 && eval "$(rbenv init - --no-rehash)"; fi
-# type nodenv >/dev/null 2>&1 && eval "$(nodenv init - --no-rehash)"; fi
+# type rbenv >/dev/null 2>&1 && eval "$(rbenv init - --no-rehash)"
+type nodenv >/dev/null 2>&1 && eval "$(nodenv init - --no-rehash)"
 
 type nix-shims >/dev/null 2>&1 && eval "$(nix-shims init)"
 
