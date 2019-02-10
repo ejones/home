@@ -5,7 +5,7 @@ export ORMAS=origin/master
 
 export HAXE_STD_PATH="/usr/local/lib/haxe/std"
 
-export PATH="$HOME/bin:$HOME/arcanist/arcanist/bin:$HOME/Library/Python/2.7/bin:$PATH"
+export PATH="$HOME/bin:$HOME/arcanist/arcanist/bin:$HOME/Library/Python/2.7/bin:/usr/local/bin:$PATH"
 
 # These lines update PATH for the Google Cloud SDK.
 GOOGLE_CLOUD_PATH="$HOME/google-cloud-sdk/path.bash.inc"
@@ -16,7 +16,7 @@ fi
 # export JAVA_HOME=$(/usr/libexec/java_home -version 1.8)
 
 # type rbenv >/dev/null 2>&1 && eval "$(rbenv init - --no-rehash)"
-type nodenv >/dev/null 2>&1 && eval "$(nodenv init - --no-rehash)"
+# type nodenv >/dev/null 2>&1 && eval "$(nodenv init - --no-rehash)"
 
 type nix-shims >/dev/null 2>&1 && eval "$(nix-shims init)"
 

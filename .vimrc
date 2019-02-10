@@ -83,6 +83,19 @@ augroup FTOptions
         \ setlocal foldmethod=indent | normal zR
 
   autocmd FileType python setlocal makeprg=python\ % errorformat= sts=4 sw=4 ts=4
+
+  autocmd FileType haxe setlocal matchpairs+=<:>
+augroup END
+
+augroup Templates
+  autocmd!
+
+  autocmd BufNewFile *.hx
+        \ let p = expand("%:p:h") |
+        \ let t = 'package ' . substitute(p[stridx(p, "src/") + 4:], '/', '.', 'g') . ';' .
+        \   "\n\nclass " . expand("%:t:r") . " {\n}" |
+        \ put! =t |
+        \ $d
 augroup END
 
 " Switch Projects - switches to a recently-used file in a project that matches
@@ -178,9 +191,9 @@ nnoremap <Leader>w :bd<CR>
 nnoremap <expr> gp '`[' . strpart(getregtype(), 0, 1) . '`]'
 
 if has('terminal')
-  " Edit command line in :terminal
-  tnoremap <CR> <C-W>:call terminal_command_window#add_and_execute_line('')<CR>
-  tnoremap <C-F> <C-W>:call terminal_command_window#edit_line('')<CR>
+  " " Edit command line in :terminal
+  " tnoremap <CR> <C-W>:call terminal_command_window#add_and_execute_line('')<CR>
+  " tnoremap <C-F> <C-W>:call terminal_command_window#edit_line('')<CR>
 
   tnoremap <C-W>; <C-W>:
 endif
