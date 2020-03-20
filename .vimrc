@@ -55,13 +55,23 @@ set wildignore+=*/.git/*,*/tmp/*,*.so,*.swp
 " Wrap left and right movement
 set whichwrap+=<,>,h,l,[,]
 
+" Diff
+set diffopt+=iwhite
+
+set runtimepath+=~/.skim
+
+" Terminal overrides
+if !has('gui')
+  " For some reason, when running in a 256 color terminal, terminal mode seems
+  " to be converting ANSI color 7 to a 256 color equivalent. In the case of
+  " solarized's 16 color palette, this ends up being much darker. So force 16
+  " color mode.
+  set t_Co=16
+endif
+
 filetype plugin indent on
 syntax on
-
-" Colors - Solarized
-if has("gui_running")
-  colors solarized
-endif
+colors solarized
 
 augroup Misc
   autocmd!
@@ -127,10 +137,91 @@ command! -bar -nargs=? -bang Scratch
 
 command! -nargs=* SubWord exec "%s/\\<" . expand("<cword>") . "\\>/" . <q-args>
 
-" Plugin Settings
+" Screen
+function! s:pick_screen() abort
+  let l:screens = filter(systemlist('screen -ls'), 'v:val =~# "^\\s"')
+  let l:choices = extend(['Pick a screen:'], map(copy(l:screens), '(v:key + 1) . ". " . v:val'))
+  let l:selected_index = len(l:screens) ==# 1 ? 0 : inputlist(l:choices) - 1
+  let l:selected_screen = matchstr(get(l:screens, l:selected_index), '\S\+')
+  call term_start(['screen', '-r', l:selected_screen], {'term_finish': 'close'})
+endfunction
 
-" let g:terminal_command_window#continuation_pattern =
-"       \ '\V\^\(...\|>\|irb\.\{-\}*\|[\d\+] pry\.\{-\}*\) '
+function! s:launch_screen(name) abort
+  if empty(a:name)
+    call s:pick_screen()
+    return
+  endif
+  call term_start('screen -mDRS ' . a:name, {'term_finish': 'close'})
+endfunction
+
+command! -nargs=* Screen call s:launch_screen(<q-args>)
+
+command! -range Wclip silent <line1>,<line2>w! ~/.clip.txt
+
+" Fugitive
+command! -nargs=0 Gdups Gdiff @{u}
+command! -nargs=0 Grups Gread @{u}:%
+command! -nargs=0 Gdmbs execute 'Gdiff ' . system('git merge-base origin @')
+command! -nargs=0 Grmbs execute 'Gread ' . trim(system('git merge-base origin @')) . ':%'
+command! -nargs=0 Glcherry Gsplit! log --cherry-pick ...origin
+command! -nargs=* Gpoh Git push origin HEAD <args>
+
+command! -nargs=? Feature
+      \ if empty(<q-args>) | execute 'Merginal' |
+      \ elseif <q-args> =~ ' ' | execute 'Git checkout -b' <q-args> | execute 'Git branch --set-upstream-to=origin/master' |
+      \ else | execute 'Git checkout -b' <q-args> 'origin/master' |
+      \ endif
+
+" Tools
+command! -nargs=* Arc <mods> topleft vertical call term_start(['arc', <f-args>], {'term_cols': 100, 'env': {'TERM': 'xterm-mono'}})
+command! -nargs=* Yarn <mods> terminal yarn <args>
+
+command! -range=% Format
+      \ let b:format_top = line('w0') |
+      \ let b:format_line = line('.') |
+      \ if &filetype ==# 'python' |
+      \ execute <q-line1> . ',' . <q-line2> '! autopep8 --max-line-length=100 -' |
+      \ else |
+      \ execute <q-line1> . ',' . <q-line2> '! yarn run -s prettier --parser'
+      \   (&filetype ==# 'scss' ? 'scss' : 'babylon') |
+      \ endif |
+      \ execute 'normal' b:format_top . 'zt' . b:format_line . 'gg'
+
+let s:test_term_cmd = 'ProjectDo bot vert term '
+let s:jest_term_test_arg = '"%:r:s?\(test\)\@<!$?.test?\\."'
+command! -nargs=* Test
+      \ if &filetype ==# 'python' |
+      \ execute s:test_term_cmd .
+      \   'ptw %:h:s?^tests/??/%:t:s?^test_?? tests/%:h:s?^tests/??/test_%:t:s?^test_?? -- -vv' |
+      \ elseif <q-args> ==# 'dbg' |
+      \ execute s:test_term_cmd .
+      \   'yarn node inspect node_modules/.bin/jest ' . s:jest_term_test_arg |
+      \ elseif <q-args> ==# 'cov' |
+      \ execute s:test_term_cmd .
+      \   'yarn run jest ' . s:jest_term_test_arg . ' --coverage --coverage-reporters lcov' |
+      \ execute 'term sh -c "cd coverage/lcov-report/ && python -mhttp.server 5000"' |
+      \ else |
+      \ execute s:test_term_cmd .
+      \   'yarn run jest --watch -u ' . s:jest_term_test_arg . (empty(<q-args>) ? '' : ' ' . <q-args>) |
+      \ endif
+
+command! -nargs=0 Console
+      \ if &filetype ==# 'python' |
+      \ execute 'ProjectDo term ipython -c "from %:r:s?/?.? import *" -i' |
+      \ else |
+      \ call term_start([
+      \   'node', '-e',
+      \   'require("@babel/register")({cwd: ' . json_encode(projectionist#path()) . '}); ' .
+      \   'const mod = require("./' . expand('%:r:r') . '");' .
+      \   'require("repl").start({}).context.' . expand('%:r:r') . ' = mod.default || mod'
+      \ ], {'env': {'NODE_ENV': 'test'}}) |
+      \ endif
+
+
+" Built-in plugins
+runtime ftplugin/man.vim
+
+" Plugin Settings
 
 " Neosnippet
 let g:neosnippet#snippets_directory='~/.vim/snippets'
@@ -138,13 +229,11 @@ let g:neosnippet#snippets_directory='~/.vim/snippets'
 " Deoplete
 let g:deoplete#enable_at_startup = 1
 
-" CtrlP
-let g:ctrlp_user_command = 'rg %s --files --color=never --glob ""'
-let g:ctrlp_use_caching = 0
-
 " RipGrep
 let g:rg_highlight = 1
 let g:rg_derive_root = 1
+let g:rg_command = "rg --vimgrep --type-add=\"jstest:*.*test.js\" --type-add=\"jstest:*.*test.jsx\"" .
+      \ " --type-add=\"pytest:test_*.py\""
 
 " Dispatch
 let g:dispatch_compilers = {'sh -c "': '', 'arc lint': 'yarn', 'bundle exec': ''}
@@ -161,7 +250,7 @@ let g:user_emmet_settings = {
 let g:vim_markdown_preview_github = 1
 
 " Mappings
-let mapleader = ','
+let g:mapleader = ','
 
 " switch : and ;
 noremap : ;
@@ -185,17 +274,16 @@ smap <C-k>     <Plug>(neosnippet_expand_or_jump)
 xmap <C-k>     <Plug>(neosnippet_expand_target)
 
 nnoremap <Leader>w :bd<CR>
+nnoremap <Leader>e :exe 'SK '.fnamemodify(fugitive#repo().git_dir, ':h')<CR>
+nnoremap <Leader>m :call skim#run(skim#wrap('SKIM', {'source': ctrlp#mrufiles#list('raw')}))<CR>
 
 " selecting pasted text.
 " from http://vim.wikia.com/wiki/Selecting_your_pasted_text
 nnoremap <expr> gp '`[' . strpart(getregtype(), 0, 1) . '`]'
 
 if has('terminal')
-  " " Edit command line in :terminal
-  " tnoremap <CR> <C-W>:call terminal_command_window#add_and_execute_line('')<CR>
-  " tnoremap <C-F> <C-W>:call terminal_command_window#edit_line('')<CR>
-
   tnoremap <C-W>; <C-W>:
+  command! Rerun call term_start(job_info(term_getjob(''))['cmd'], {'curwin': 1})
 endif
 
 if filereadable(expand("~/.work/vimrc"))

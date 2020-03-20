@@ -1,8 +1,10 @@
-[[ $(uname) = Darwin ]] && PS1=$'\\u:\\W$ '
+if [[ $(uname) = Darwin ]]; then
+    PS1=$'\\u:\\W$ '
+else
+    PS1='\u@\h:$(sed "s:\([a-zA-Z]\)[^/]*/:\1/:g" <<< '\''\w'\'')$ '
+fi
 
-bind '"\t":menu-complete'
-bind '"\e[A":history-search-backward'
-bind '"\e[B":history-search-forward'
+[[ "$-" == *i* ]] && bind '"\t":menu-complete'
 
 alias ll='ls -l'
 
@@ -30,10 +32,6 @@ alias fixup='git commit --amend --no-edit'
 alias yt='yarn test'
 alias ytu='yarn test -u'
 
-alias cdiff140s='cdiff -w140 -s'
-alias cdiff0s='cdiff -w0 -s'
-
-alias simple-http='python -mSimpleHTTPServer'
 alias grasp='grasp -x js,jsx --parser "(flow-parser, { esproposal_class_instance_fields: true, esproposal_class_static_fields: true, esproposal_decorators: true, esproposal_export_star_as: true, types: true})"'
 
 alias track-ordev='set-upstream origin/develop'
@@ -41,9 +39,9 @@ alias track-ordev='set-upstream origin/develop'
 alias gdcas='gds --cached'
 
 alias nsh='nix-shell --pure'
+alias psme='ps -fHu $(id -u)'
 
 # Work-specific settings/scripts. Not synced publicly!
 if [[ -s "$HOME/.work/bashrc" ]]; then
     source "$HOME/.work/bashrc"
 fi
-

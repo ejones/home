@@ -1,11 +1,7 @@
 export EDITOR=vim
-
-export ORDEV=origin/develop
 export ORMAS=origin/master
 
-export HAXE_STD_PATH="/usr/local/lib/haxe/std"
-
-export PATH="$HOME/bin:$HOME/arcanist/arcanist/bin:$HOME/Library/Python/2.7/bin:/usr/local/bin:$PATH"
+export PATH="$HOME/bin:$HOME/.yarn/bin:$PATH"
 
 # These lines update PATH for the Google Cloud SDK.
 GOOGLE_CLOUD_PATH="$HOME/google-cloud-sdk/path.bash.inc"
@@ -31,14 +27,27 @@ setupstream() {
 }
 
 gds() {
-    git diff -w "$@" | cdiff -w"$(($(tput cols) > 280 ? 140 : 0))" -s
+    git diff -w "$@" | ydiff -w"$(($(tput cols) > 280 ? 140 : 0))" -s
 }
 
 gss() {
-    git show -w "$@" | cdiff -w"$(($(tput cols) > 280 ? 140 : 0))" -s
+    git show -w "$@" | ydiff -w"$(($(tput cols) > 280 ? 140 : 0))" -s
 }
 
-export -f stashed setupstream gds gss
+othersessions() {
+    who -u |
+    while read name _line _time1 _time2 idle pid _comment; do
+      if [ "$name" = "$(whoami)" ] && [ "$idle" != "." ]; then
+        pgrep -P "$pid"
+      fi
+    done
+}
+
+simplehttp() {
+    cd "$2" && python -mhttp.server "$1"
+}
+
+export -f stashed setupstream gds gss othersessions iterm2copy simplehttp
 
 if type brew >/dev/null 2>&1 && [[ -s "$(brew --prefix)/etc/profile.d/autojump.sh" ]]; then
     source "$(brew --prefix)/etc/profile.d/autojump.sh"
@@ -63,6 +72,15 @@ fi
 #     __git_complete gff _git_merge
 #     __git_complete gb _git_branch
 # fi
+
+if [[ -n "$(othersessions)" ]]; then
+    echo 'There are suspended sessions:'
+    psme
+    read -p 'Do you want to kill them? [y/N] ' -r
+    if [[ "$REPLY" =~ ^[Yy]$ ]]; then
+        kill $(othersessions)
+    fi
+fi
 
 GOOGLE_CLOUD_COMPLETION="$HOME/google-cloud-sdk/completion.bash.inc"
 if [[ -f "$GOOGLE_CLOUD_COMPLETION" ]]; then
